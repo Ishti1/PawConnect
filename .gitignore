@@ -1,0 +1,40 @@
+# Build
+backend/target/
+frontend/target/
+backend/build/
+frontend/build/
+backend/.gradle/
+frontend/.gradle/
+*.class
+*.jar
+!**/src/main/**
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.metadata/
+.recommenders/
+# Keep shared launch configs: eclipse/launches/ is committed
+*.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets & local config
+.env
+**/application-local.properties
+
+# Uploaded images (keep folder)
+storage/images/**
+!storage/images/.gitkeep
+
+# Logs
+*.log
+
+# Dev database (H2 file store)
+backend/data/
+data/

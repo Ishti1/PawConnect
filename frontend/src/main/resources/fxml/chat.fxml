@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.catconnect.controller.ChatController"
+      spacing="14"
+      style="-fx-background-color: transparent;">
+    <padding>
+        <Insets top="6" right="2" bottom="12" left="2"/>
+    </padding>
+
+    <Label text="Community Chat"
+           style="-fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #2d3436;"/>
+
+    <Label fx:id="chatStatusLabel"
+           style="-fx-text-fill: #636e72; -fx-font-size: 13px;"
+           text="Connecting..."/>
+
+    <ListView fx:id="chatListView"
+              prefHeight="420"
+              style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 6;"/>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <TextField fx:id="inputField" promptText="Type a message..."
+                   HBox.hgrow="ALWAYS"
+                   style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 10;"/>
+        <Button fx:id="sendButton"
+                text="Send"
+                onAction="#onSend"
+                styleClass="primary-button"/>
+    </HBox>
+</VBox>
+

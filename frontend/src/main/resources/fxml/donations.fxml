@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<VBox spacing="14" styleClass="screen-root" stylesheets="@../styles/app.css"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.catconnect.controller.DonationsController">
+    <padding><Insets top="4" right="2" bottom="16" left="2"/></padding>
+    <Label text="💝 Donation &amp; Support" styleClass="screen-title"/>
+    <VBox styleClass="action-bar" spacing="10">
+        <Label text="Start a donation campaign. Only you can edit or delete your own campaigns." styleClass="action-bar-hint" wrapText="true"/>
+        <HBox spacing="12"><Button text="+ Add Campaign" onAction="#onAdd" styleClass="primary-button"/>
+            <Button text="Refresh" onAction="#onRefresh" styleClass="secondary-button"/></HBox>
+    </VBox>
+    <VBox fx:id="addForm" styleClass="form-card" spacing="10" visible="false" managed="false">
+        <Label text="Campaign" styleClass="section-label"/>
+        <Label text="Title (required)" styleClass="form-label"/><TextField fx:id="titleField"/>
+        <Label text="Description" styleClass="form-label"/><TextArea fx:id="descField" prefRowCount="3" wrapText="true"/>
+        <Label text="Goal amount" styleClass="form-label"/><TextField fx:id="goalField" promptText="e.g. 15000"/>
+        <Label text="Account name" styleClass="form-label"/><TextField fx:id="accountNameField" promptText="Name on account"/>
+        <Label text="Account number / IBAN" styleClass="form-label"/><TextField fx:id="accountNumberField" promptText="Account number"/>
+        <Label text="Bank name" styleClass="form-label"/><TextField fx:id="bankNameField" promptText="Bank"/>
+        <Label text="Mobile banking / wallet" styleClass="form-label"/><TextField fx:id="mobileBankingField" promptText="Bkash/Nagad/etc (optional)"/>
+        <Label text="Payment instructions" styleClass="form-label"/><TextArea fx:id="paymentInstructionsField" prefRowCount="2" wrapText="true"/>
+        <HBox spacing="10"><Button text="Choose photo..." onAction="#onChooseImage" styleClass="secondary-button"/>
+            <Button text="Clear" onAction="#onClearImage" styleClass="secondary-button"/></HBox>
+        <Label fx:id="photoLabel" text="No photo selected" styleClass="action-bar-hint"/>
+        <ImageView fx:id="photoPreview" fitHeight="120" preserveRatio="true" styleClass="photo-preview"/>
+        <TextField fx:id="imageUrlField" promptText="Or paste image URL (optional)"/>
+        <HBox spacing="10"><Button text="Save" onAction="#onSave" styleClass="primary-button"/>
+            <Button text="Cancel" onAction="#onCancelAdd" styleClass="secondary-button"/></HBox>
+    </VBox>
+    <Label fx:id="statusLabel" text="Loading..." styleClass="action-bar-hint"/>
+    <VBox fx:id="listBox" spacing="10"/>
+</VBox>

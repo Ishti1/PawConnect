@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.catconnect.controller.MainController"
+            stylesheets="@../styles/app.css" prefWidth="1100" prefHeight="700">
+    <left>
+        <VBox styleClass="sidebar" prefWidth="220" spacing="4">
+            <padding><Insets top="20" right="12" bottom="20" left="12"/></padding>
+            <Label text="CatConnect" styleClass="title"/>
+            <Label fx:id="userLabel" style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 11px;" wrapText="true"/>
+            <Separator style="-fx-background-color: rgba(255,255,255,0.3);"/>
+            <Button text="🏠 Home" onAction="#showHome" fx:id="btnHome" styleClass="nav-button"/>
+            <Button text="🔍 Lost &amp; Found" onAction="#showLostFound" fx:id="btnLostFound" styleClass="nav-button"/>
+            <Button text="🏥 Nearby Vet" onAction="#showVets" fx:id="btnVets" styleClass="nav-button"/>
+            <Button text="🚨 Emergency Vet" onAction="#showEmergency" fx:id="btnEmergency" styleClass="nav-button"/>
+            <Button text="🍽 Food Tips" onAction="#showFood" fx:id="btnFood" styleClass="nav-button"/>
+            <Button text="🛒 Cat Shops" onAction="#showShops" fx:id="btnShops" styleClass="nav-button"/>
+            <Button text="📸 Cat Moments" onAction="#showMoments" fx:id="btnMoments" styleClass="nav-button"/>
+            <Button text="💝 Donations" onAction="#showDonations" fx:id="btnDonations" styleClass="nav-button"/>
+            <Button text="🏠 Shelters" onAction="#showShelters" fx:id="btnShelters" styleClass="nav-button"/>
+            <Button text="🐾 Adoption" onAction="#showAdoption" fx:id="btnAdoption" styleClass="nav-button"/>
+            <Button text="😹 Cat Memes" onAction="#showMemes" fx:id="btnMemes" styleClass="nav-button"/>
+            <Button text="💬 Community Chat" onAction="#showChat" fx:id="btnChat" styleClass="nav-button"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="Logout" onAction="#onLogout" style="-fx-background-color: rgba(0,0,0,0.15); -fx-text-fill: white; -fx-background-radius: 6;"/>
+        </VBox>
+    </left>
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="content-area" fx:id="contentScroll">
+            <VBox fx:id="contentBox" spacing="16"/>
+        </ScrollPane>
+    </center>
+</BorderPane>

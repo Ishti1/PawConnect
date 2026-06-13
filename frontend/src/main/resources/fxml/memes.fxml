@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.catconnect.controller.MemesController"
+      spacing="14" styleClass="screen-root"
+      stylesheets="@../styles/app.css">
+    <padding><Insets top="4" right="2" bottom="16" left="2"/></padding>
+
+    <HBox alignment="CENTER_LEFT" spacing="16">
+        <Label text="😹 Cat Memes" styleClass="screen-title"/>
+    </HBox>
+
+    <VBox styleClass="action-bar" spacing="10">
+        <Label text="Share a cat meme! Only you can delete your own memes."
+               styleClass="action-bar-hint" wrapText="true"/>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="+ Add Meme" onAction="#onAdd" styleClass="primary-button"/>
+            <Button text="Refresh" onAction="#onRefresh" styleClass="secondary-button"/>
+        </HBox>
+    </VBox>
+
+    <!-- Inline add form -->
+    <VBox fx:id="addForm" styleClass="form-card" spacing="10" visible="false" managed="false">
+        <Label text="New Meme" styleClass="section-label"/>
+        <Label text="Title (optional)" styleClass="form-label"/>
+        <TextField fx:id="titleField" promptText="Funny caption"/>
+        <Label text="Photo (required)" styleClass="form-label"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button text="Choose photo..." onAction="#onChooseImage" styleClass="secondary-button"/>
+            <Button text="Clear" onAction="#onClearImage" styleClass="secondary-button"/>
+        </HBox>
+        <Label fx:id="photoLabel" text="No photo selected" styleClass="action-bar-hint"/>
+        <ImageView fx:id="photoPreview" fitHeight="120" preserveRatio="true" styleClass="photo-preview"/>
+        <Label text="Or paste image URL" styleClass="form-label"/>
+        <TextField fx:id="imageUrlField" promptText="https://... (if you did not choose a file)"/>
+        <HBox spacing="10">
+            <Button text="Save" onAction="#onSave" styleClass="primary-button"/>
+            <Button text="Cancel" onAction="#onCancelAdd" styleClass="secondary-button"/>
+        </HBox>
+    </VBox>
+
+    <Label fx:id="statusLabel" text="Loading memes..." styleClass="action-bar-hint"/>
+    <VBox fx:id="listBox" spacing="10"/>
+</VBox>

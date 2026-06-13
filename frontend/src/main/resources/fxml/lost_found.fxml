@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="14" styleClass="screen-root" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.catconnect.controller.LostFoundController">
+    <padding><Insets bottom="16" left="2" right="2" top="4" /></padding>
+
+    <!-- Title row -->
+    <HBox alignment="CENTER_LEFT" spacing="16">
+        <Label styleClass="screen-title" text="🔍 Lost &amp; Found" />
+    </HBox>
+
+    <!-- Action bar -->
+    <VBox spacing="10" styleClass="action-bar">
+        <Label styleClass="action-bar-hint" text="Add a report below.." wrapText="true" />
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <Button onAction="#onAdd" styleClass="primary-button" text="+ Add Post" />
+            <Button onAction="#onRefresh" styleClass="secondary-button" text="Refresh" />
+        </HBox>
+    </VBox>
+
+    <!-- Inline add form (hidden until + Add Post clicked) -->
+    <VBox fx:id="addForm" managed="false" spacing="10" styleClass="form-card" visible="false">
+        <Label styleClass="section-label" text="New Lost / Found Post" />
+        <Label styleClass="form-label" text="Type" />
+        <ComboBox fx:id="typeBox" maxWidth="Infinity" />
+        <Label styleClass="form-label" text="Cat description (required)" />
+        <TextField fx:id="descField" promptText="e.g. Orange tabby, green collar" />
+        <Label styleClass="form-label" text="Last seen location" />
+        <TextField fx:id="locationField" promptText="e.g. Zamalek, 15th St" />
+        <Label styleClass="form-label" text="Address Link (optional map URL)" />
+        <TextField fx:id="addressLinkField" promptText="https://maps.google.com/..." />
+        <Label styleClass="form-label" text="Contact phone" />
+        <TextField fx:id="phoneField" promptText="+20-100-000-0000" />
+        <Label styleClass="form-label" text="Photo (optional)" />
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Button onAction="#onChooseImage" styleClass="secondary-button" text="Choose photo..." />
+            <Button onAction="#onClearImage" styleClass="secondary-button" text="Clear" />
+        </HBox>
+        <Label fx:id="photoLabel" styleClass="action-bar-hint" text="No photo selected" />
+        <ImageView fx:id="photoPreview" fitHeight="120" preserveRatio="true" styleClass="photo-preview" />
+        <Label styleClass="form-label" text="Or paste image URL" />
+        <TextField fx:id="imageUrlField" promptText="https://... (optional)" />
+        <HBox spacing="10">
+            <Button onAction="#onSave" styleClass="primary-button" text="Save" />
+            <Button onAction="#onCancelAdd" styleClass="secondary-button" text="Cancel" />
+        </HBox>
+    </VBox>
+
+    <!-- Status / loading -->
+    <Label fx:id="statusLabel" styleClass="action-bar-hint" text="Loading posts..." />
+
+    <!-- Posts list -->
+    <VBox fx:id="listBox" spacing="10" />
+</VBox>
