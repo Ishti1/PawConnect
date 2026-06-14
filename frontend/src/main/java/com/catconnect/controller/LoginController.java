@@ -66,7 +66,9 @@ public class LoginController {
                 AuthResponse response = register
                         ? ApiClient.get().register(email, password, displayNameField.getText().trim())
                         : ApiClient.get().login(email, password);
+                response.getUser().setIsAdmin(response.getIsAdmin());
                 Session.setAuth(response.getToken(), response.getUser());
+                System.out.println("LOGIN ADMIN = " + Session.getCurrentUser().isAdmin());
                 javafx.application.Platform.runLater(this::openMain);
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {

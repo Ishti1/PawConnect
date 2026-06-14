@@ -9,9 +9,9 @@
 <?import javafx.scene.layout.VBox?>
 
 <StackPane styleClass="login-pane" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.catconnect.controller.LoginController">
-    <VBox alignment="CENTER" maxWidth="420" spacing="20" styleClass="login-card">
-        <Label style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2d3436;" text="🐱 PaWHuB" />
-        <Label style="-fx-text-fill: #636e72;" text="Your community for cats" />
+    <VBox alignment="CENTER" maxWidth="420" prefWidth="420" maxHeight="360" spacing="18" styleClass="login-card">
+        <Label style="-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #2d3436;" text="🐱 PaWConnect" />
+        <Label style="-fx-font-size: 14px; -fx-text-fill: #636e72;" text="Your community for cats" />
         <TextField fx:id="emailField" prefWidth="320" promptText="Email" />
         <PasswordField fx:id="passwordField" prefWidth="320" promptText="Password" />
         <TextField fx:id="displayNameField" managed="false" prefWidth="320" promptText="Display name (register only)" visible="false" />

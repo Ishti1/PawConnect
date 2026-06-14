@@ -17,4 +17,6 @@ public class VetRequest {
     private String city;
     private String imageUrl;
     private String mapLink;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
 }

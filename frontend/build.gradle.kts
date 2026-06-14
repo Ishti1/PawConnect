@@ -19,6 +19,7 @@ repositories {
 val javafxVersion = "21.0.2"
 
 dependencies {
+    implementation("org.openjfx:javafx-web:$javafxVersion")
     implementation("org.openjfx:javafx-controls:$javafxVersion")
     implementation("org.openjfx:javafx-fxml:$javafxVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
@@ -28,7 +29,7 @@ dependencies {
 
 javafx {
     version = javafxVersion
-    modules("javafx.controls", "javafx.fxml")
+    modules("javafx.controls", "javafx.fxml","javafx.web")
 }
 
 application {

@@ -22,6 +22,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.TilePane;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -32,10 +33,10 @@ import java.util.Map;
  * Base class for FXML-based list screens that support owner-only delete.
  * Subclasses provide the API path and override buildCard() to produce each row.
  */
-public abstract class BaseListController {
+public abstract class       BaseListController {
 
     @FXML protected Label statusLabel;
-    @FXML protected VBox  listBox;
+    @FXML protected TilePane listBox;
 
     /** API endpoint to GET items (e.g. "/lost-found") */
     protected abstract String getApiPath();
@@ -411,24 +412,48 @@ public abstract class BaseListController {
 
     protected VBox buildCatalogCard(JsonNode item, long id, String title, String detail,
                                     String reactPath, Runnable onEdit) {
-        Label detailLbl = new Label(detail);
-        detailLbl.getStyleClass().add("card-detail");
-        detailLbl.setWrapText(true);
 
-        VBox card = new VBox(8);
+        VBox card = new VBox(12);
         card.getStyleClass().add("card");
+        card.setMaxWidth(Double.MAX_VALUE);
+        card.setFillWidth(true);
+
+        String img = imageUrlFrom(item);
+
+        if (img != null && !img.isBlank()) {
+            ImageView imageView = createCardImageView(img);
+            imageView.setFitHeight(220);
+            imageView.setFitWidth(480);
+            imageView.setPreserveRatio(false);
+
+            card.getChildren().add(imageView);
+            card.setPrefWidth(480);
+            card.setMaxWidth(480);
+        }
+
+        VBox infoBox = new VBox(10);
+        infoBox.setMaxWidth(Double.MAX_VALUE);
+
+        HBox header;
         if (isOwn(item)) {
             Button editBtn = new Button("Edit");
             editBtn.getStyleClass().add("edit-button");
             editBtn.setOnAction(e -> onEdit.run());
-            card.getChildren().add(cardHeader(title, editBtn, deleteButton(id)));
+            header = cardHeader(title, editBtn, deleteButton(id));
         } else {
-            card.getChildren().add(cardHeader(title));
+            header = cardHeader(title);
         }
-        String img = imageUrlFrom(item);
-        insertCardImage(card, img);
-        card.getChildren().add(detailLbl);
-        card.getChildren().add(reactionBar(reactPath, item.path("likes").asInt(0), null));
+
+        Label detailLbl = new Label(detail);
+        detailLbl.getStyleClass().add("card-detail");
+        detailLbl.setWrapText(true);
+        detailLbl.setMaxWidth(Double.MAX_VALUE);
+
+        HBox reaction = reactionBar(reactPath, item.path("likes").asInt(0), null);
+
+        infoBox.getChildren().addAll(header, detailLbl, reaction);
+        card.getChildren().add(infoBox);
+
         return card;
     }
 

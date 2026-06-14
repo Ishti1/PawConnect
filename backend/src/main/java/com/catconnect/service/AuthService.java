@@ -49,9 +49,11 @@ public class AuthService {
 
     private AuthResponse buildResponse(User user) {
         String token = jwtService.generateToken(user.getId(), user.getEmail());
+
         return AuthResponse.builder()
                 .token(token)
                 .user(UserDto.from(user))
+                .isAdmin(Boolean.TRUE.equals(user.getIsAdmin()))
                 .build();
     }
 }

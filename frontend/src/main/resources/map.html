@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vet Map</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    let map = L.map('map').setView([23.7465, 90.3760], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: 'OpenStreetMap'
+    }).addTo(map);
+
+    let markers = [];
+
+    function clearMarkers() {
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+    }
+
+    function showArea(area, lat, lng) {
+        clearMarkers();
+
+        map.setView([lat, lng], 15);
+
+        let userMarker = L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup("Selected location: " + area)
+            .openPopup();
+
+        markers.push(userMarker);
+
+        if (area === "Dhanmondi") {
+            addVet("Dhanmondi Pet Care", 23.7461, 90.3742);
+            addVet("Animal Care Dhanmondi", 23.7480, 90.3775);
+            addVet("Pet Clinic 27", 23.7510, 90.3735);
+        }
+
+        if (area === "Uttara") {
+            addVet("Uttara Vet Clinic", 23.8759, 90.3795);
+            addVet("Pet Care Uttara", 23.8728, 90.3812);
+            addVet("Animal Health Center Uttara", 23.8784, 90.3768);
+        }
+
+        setTimeout(function () {
+            map.invalidateSize();
+        }, 300);
+    }
+
+    function addVet(name, lat, lng) {
+        let marker = L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup("🏥 " + name);
+
+        markers.push(marker);
+    }
+
+    setTimeout(function () {
+        map.invalidateSize();
+        showArea("Dhanmondi", 23.7465, 90.3760);
+    }, 500);
+</script>
+</body>
+</html>

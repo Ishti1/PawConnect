@@ -21,6 +21,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
