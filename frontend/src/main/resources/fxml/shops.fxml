@@ -3,22 +3,47 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+
 <VBox spacing="14" styleClass="screen-root" stylesheets="@../styles/app.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.catconnect.controller.ShopsController">
+      fx:controller="com.catconnect.controller.CatShopsController">
     <padding><Insets top="4" right="2" bottom="16" left="2"/></padding>
-    <Label text="🛒 Nearby Cat Shops" styleClass="screen-title"/>
-    <VBox styleClass="action-bar" spacing="10">
-        <Label text="Add a shop listing. Only you can edit or delete your own posts." styleClass="action-bar-hint" wrapText="true"/>
-        <HBox spacing="12"><Button text="+ Add Shop" onAction="#onAdd" styleClass="primary-button"/>
-            <Button text="Refresh" onAction="#onRefresh" styleClass="secondary-button"/></HBox>
+    <Label fx:id="screenTitle" text="🛍️ Cat Shops &amp; Supplies" styleClass="screen-title"/>
+    <VBox styleClass="search-header" spacing="12">
+        <Label text="🐾 PawConnect" styleClass="brand-title"/>
+
+        <HBox spacing="12">
+            <TextField fx:id="searchField"
+                       promptText="Search cat shops, food, supplies..."
+                       prefWidth="420"/>
+
+            <Button text="Search"
+                    onAction="#onSearch"
+                    styleClass="primary-button"/>
+
+            <Button fx:id="addShopButton"
+                    text="+ Add Shop"
+                    onAction="#onAdd"
+                    styleClass="primary-button"/>
+        </HBox>
+    </VBox>
+    <VBox styleClass="form-card" spacing="10">
+        <Label text="Find cat shops near selected area" styleClass="section-label"/>
+
+        <HBox spacing="10">
+            <ComboBox fx:id="locationBox" promptText="Select Location"/>
+            <Button text="Find Nearby" onAction="#onFindNearby" styleClass="primary-button"/>
+        </HBox>
     </VBox>
     <VBox fx:id="addForm" styleClass="form-card" spacing="10" visible="false" managed="false">
-        <Label text="Shop listing" styleClass="section-label"/>
+        <Label text="Cat Shop listing" styleClass="section-label"/>
         <Label text="Name (required)" styleClass="form-label"/><TextField fx:id="nameField"/>
         <Label text="Address" styleClass="form-label"/><TextField fx:id="addressField"/>
         <Label text="Phone" styleClass="form-label"/><TextField fx:id="phoneField"/>
+        <Label text="Open hours" styleClass="form-label"/><TextField fx:id="hoursField"/>
         <Label text="City" styleClass="form-label"/><TextField fx:id="cityField"/>
+        <Label text="Website link" styleClass="form-label"/>
+        <TextField fx:id="websiteField" promptText="https://example.com"/>
         <Label text="Photo (optional)" styleClass="form-label"/>
         <HBox spacing="10"><Button text="Choose photo..." onAction="#onChooseImage" styleClass="secondary-button"/>
             <Button text="Clear" onAction="#onClearImage" styleClass="secondary-button"/></HBox>
@@ -28,6 +53,16 @@
         <HBox spacing="10"><Button text="Save" onAction="#onSave" styleClass="primary-button"/>
             <Button text="Cancel" onAction="#onCancelAdd" styleClass="secondary-button"/></HBox>
     </VBox>
-    <Label fx:id="statusLabel" text="Loading..." styleClass="action-bar-hint"/>
-    <VBox fx:id="listBox" spacing="10"/>
+    <Label text="Nearby Cat Shops" styleClass="section-label"/>
+
+    <Label fx:id="statusLabel"
+           text="Loading..."
+           styleClass="action-bar-hint"/>
+
+    <TilePane fx:id="listBox"
+              prefColumns="2"
+              hgap="20"
+              vgap="20"
+              prefTileWidth="480"
+              tileAlignment="TOP_LEFT"/>
 </VBox>

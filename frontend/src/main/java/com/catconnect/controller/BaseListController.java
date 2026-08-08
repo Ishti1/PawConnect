@@ -33,7 +33,7 @@ import java.util.Map;
  * Base class for FXML-based list screens that support owner-only delete.
  * Subclasses provide the API path and override buildCard() to produce each row.
  */
-public abstract class       BaseListController {
+public abstract class BaseListController {
 
     @FXML protected Label statusLabel;
     @FXML protected TilePane listBox;
@@ -317,8 +317,11 @@ public abstract class       BaseListController {
     protected void chooseImage(ImageView preview, Label photoLabel) {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choose a photo");
+
+        // Corrected line: strictly allows native JavaFX formats, avoiding WebP loading errors
         chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp"));
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
+
         Stage stage = listBox != null && listBox.getScene() != null
                 ? (Stage) listBox.getScene().getWindow()
                 : null;
@@ -449,9 +452,9 @@ public abstract class       BaseListController {
         detailLbl.setWrapText(true);
         detailLbl.setMaxWidth(Double.MAX_VALUE);
 
-        HBox reaction = reactionBar(reactPath, item.path("likes").asInt(0), null);
 
-        infoBox.getChildren().addAll(header, detailLbl, reaction);
+
+        infoBox.getChildren().addAll(header, detailLbl);
         card.getChildren().add(infoBox);
 
         return card;

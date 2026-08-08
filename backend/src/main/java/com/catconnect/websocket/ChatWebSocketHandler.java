@@ -42,11 +42,19 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
         JsonNode node = objectMapper.readTree(message.getPayload());
+
+        if ("subscribe".equals(node.path("type").asText())) {
+            String roomId = ChatService.normalizeRoomId(userId, node.path("roomId").asText(ChatService.GENERAL_ROOM));
+            chatService.setSessionRoom(session.getId(), roomId);
+            return;
+        }
+
         String content = node.path("content").asText("");
         if (content.isBlank()) {
             return;
         }
-        String roomId = node.path("roomId").asText(ChatService.GENERAL_ROOM);
+        String roomId = ChatService.normalizeRoomId(userId, node.path("roomId").asText(ChatService.GENERAL_ROOM));
+        chatService.setSessionRoom(session.getId(), roomId);
         chatService.send(userId, content, roomId);
     }
 

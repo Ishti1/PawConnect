@@ -3,9 +3,12 @@ package com.catconnect.service;
 import com.catconnect.entity.LostFoundPost;
 import com.catconnect.dto.LostFoundUpdateRequest;
 import com.catconnect.repository.LostFoundPostRepository;
+import com.catconnect.repository.UserRepository; // Make sure this is correct for your project
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -13,6 +16,27 @@ public class LostFoundService {
 
     private final LostFoundPostRepository lostFoundPostRepository;
     private final OwnershipService ownershipService;
+    private final UserRepository userRepository;
+
+    // New method to fetch posts and populate the senderName
+
+    @Transactional(readOnly = true)
+    public List<LostFoundPost> getAllActivePosts() {
+        List<LostFoundPost> posts = lostFoundPostRepository.findByStatus("ACTIVE");
+
+        for (LostFoundPost post : posts) {
+            if (post.getUserId() != null) {
+                userRepository.findById(post.getUserId()).ifPresent(user -> {
+                    // Use getDisplayName() here!
+                    post.setSenderName(user.getDisplayName());
+
+                    // Optional: Keep this to verify it works in your console
+                    System.out.println("✅ Found user: " + user.getDisplayName() + " for Post ID: " + post.getId());
+                });
+            }
+        }
+        return posts;
+    }
 
     @Transactional
     public void remove(Long id, Long currentUserId) {

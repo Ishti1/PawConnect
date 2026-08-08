@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.fxml.FXMLLoader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,9 +21,23 @@ import java.util.function.Consumer;
 
 public class MainController {
 
+    private static MainController instance;
+
+    public MainController() {
+        instance = this;
+    }
+
+    public static MainController getInstance() {
+        return instance;
+    }
+
+
     @FXML private Label userLabel;
     @FXML private javafx.scene.control.ScrollPane contentScroll;
     @FXML private VBox contentBox;
+    @FXML private VBox sidebar;
+    @FXML private Label appTitle;
+    @FXML private Button btnLogout;
     @FXML private Button btnHome;
     @FXML private Button btnLostFound;
     @FXML private Button btnVets;
@@ -47,8 +62,65 @@ public class MainController {
         if (Session.getCurrentUser() != null) {
             userLabel.setText("Hi, " + Session.getCurrentUser().getDisplayName());
         }
+        
+        // Sidebar hover logic
+        if (sidebar != null) {
+            sidebar.setOnMouseEntered(e -> expandSidebar());
+            sidebar.setOnMouseExited(e -> minimizeSidebar());
+            minimizeSidebar(); // start minimized
+        }
+
         setActive(btnHome);
         renderHome();
+    }
+    
+    private void expandSidebar() {
+        sidebar.setPrefWidth(220);
+        appTitle.setVisible(true);
+        appTitle.setManaged(true);
+        userLabel.setVisible(true);
+        userLabel.setManaged(true);
+        
+        for (Button b : navButtons()) {
+            if (b != null) setButtonText(b, true);
+        }
+        if (btnLogout != null) setButtonText(btnLogout, true);
+    }
+
+    private void minimizeSidebar() {
+        sidebar.setPrefWidth(80);
+        appTitle.setVisible(false);
+        appTitle.setManaged(false);
+        userLabel.setVisible(false);
+        userLabel.setManaged(false);
+        
+        for (Button b : navButtons()) {
+            if (b != null) setButtonText(b, false);
+        }
+        if (btnLogout != null) setButtonText(btnLogout, false);
+    }
+
+    private void setButtonText(Button btn, boolean expanded) {
+        String fullText = (String) btn.getProperties().getOrDefault("fullText", btn.getText());
+        btn.getProperties().putIfAbsent("fullText", fullText);
+        
+        if (expanded) {
+            btn.setText(fullText);
+            btn.setStyle(""); // reset inline style to use css class defaults
+        } else {
+            // Extract the first emoji/character
+            int firstSpace = fullText.indexOf(' ');
+            if (firstSpace > 0) {
+                btn.setText(fullText.substring(0, firstSpace));
+            } else if (fullText.length() >= 2) {
+                // To handle surrogate pairs like emojis properly
+                btn.setText(fullText.substring(0, Character.charCount(fullText.codePointAt(0))));
+            } else {
+                btn.setText(fullText.substring(0, 1));
+            }
+            // Remove side padding and center the text to prevent '...' truncation
+            btn.setStyle("-fx-alignment: center; -fx-padding: 10 0; -fx-text-overrun: clip;");
+        }
     }
 
     @FXML private void showHome() {
@@ -191,7 +263,17 @@ public class MainController {
             scrollToTop();
         }
     }
-
+    // Paste this into MainController.java
+    // Inside MainController.java
+    public void openDirectChat(Long targetUserId, String userName) {
+        setActive(btnChat);
+        showCachedScreen("chat", "/fxml/chat.fxml", true, true, controller -> {
+            if (controller instanceof ChatController chatController) {
+                // Ensure you are passing BOTH arguments here
+                chatController.openChatWithUser(targetUserId, userName);
+            }
+        });
+    }
     private void showReadOnly(String key, String title, String path, Consumer<JsonNode> renderer) {
         // cache a simple VBox so switching tabs doesn't recreate layout
         Parent root = screenCache.get(key);
@@ -294,6 +376,7 @@ public class MainController {
     }
 
     private void disconnectChat() {
+        // Add a null check to prevent NullPointerException
         if (chatScreenController != null) {
             chatScreenController.disconnect();
         }
@@ -301,18 +384,19 @@ public class MainController {
 
     private void renderHome() {
         if (homeContent == null) {
-            VBox home = new VBox(16);
-            home.getChildren().add(UiHelper.sectionTitle("Welcome to PawHub"));
-            GridPane grid = new GridPane();
-            grid.setHgap(16);
-            grid.setVgap(16);
-            home.getChildren().add(grid);
-            homeContent = home;
+            try {
+                // Load your brand new home.fxml file instead of building it manually
+                homeContent = FXMLLoader.load(getClass().getResource("/fxml/home.fxml"));
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Fallback in case the FXML file fails to load
+                homeContent = new VBox(new Label("Error loading home screen."));
+            }
         }
+        // Swap the main center view out for your home layout
         contentBox.getChildren().setAll(homeContent);
         currentScreenKey = "home";
     }
-
     private void setActive(Button active) {
         for (Button b : navButtons()) {
             if (b != null) {

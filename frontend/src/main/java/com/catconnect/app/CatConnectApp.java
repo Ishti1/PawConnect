@@ -12,7 +12,7 @@ public class CatConnectApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Session.init();
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/splash.fxml"));
         stage.setTitle("CatConnect");
         stage.setMinWidth(1000);
         stage.setMinHeight(650);

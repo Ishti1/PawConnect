@@ -45,23 +45,29 @@ public class LostFoundController extends BaseListController {
     @FXML
     private void onSave() {
         if (descField.getText().isBlank()) {
-            com.catconnect.util.UiHelper.showError("Description is required.");
+            com.catconnect.util.UiHelper.showError("Description/Details are required.");
             return;
         }
+
         boolean isEditing = editingId != null;
         Map<String, Object> body = new HashMap<>();
+
         body.put("postType", typeBox.getValue());
         body.put("catDescription", descField.getText().trim());
         body.put("lastSeenLocation", locationField.getText().trim());
         body.put("mapLink", addressLinkField.getText().trim());
         body.put("contactPhone", phoneField.getText().trim());
+
         File imageFile = selectedImageFile;
         String imageUrl = readImageUrlField(imageUrlField);
+
         if (isEditing && imageFile == null && imageUrl.isBlank() && existingImageUrl != null && !existingImageUrl.isBlank()) {
             imageUrl = existingImageUrl;
         }
+
         Long id = editingId;
         showForm(false);
+
         if (isEditing) {
             updateWithImage("/lost-found/" + id, body, imageFile, imageUrl);
         } else {
@@ -80,26 +86,68 @@ public class LostFoundController extends BaseListController {
         String desc = item.path("catDescription").asText("(no description)");
         String loc = item.path("lastSeenLocation").asText("Unknown location");
         String phone = item.path("contactPhone").asText("No phone");
-        String title = "[" + type + "] " + desc;
-        String detail = "📍 " + loc + "   📞 " + phone;
 
+        // 1. Extract the poster's name from the backend JSON response
+        String posterName = item.path("senderName").asText("Anonymous");
+
+        // Add visual indicators for Lost vs Found
+        String prefix = "LOST".equalsIgnoreCase(type) ? "🚨 LOST: " : "✅ FOUND: ";
+        String title = prefix + desc;
+
+        // 2. Add the poster's name to the detail string
+        String detail = "👤 Posted by: " + posterName + "\n📍 Location: " + loc + "\n📞 Phone: " + phone;
+
+        // Build the base card
         VBox card = buildCatalogCard(item, id, title, detail, "/lost-found/" + id + "/react", () -> beginEdit(item));
+
+        // Container for action buttons (Map Link, Message)
+        HBox actionButtons = new HBox(10);
+
         Button addressBtn = addressLinkButton(item.path("mapLink").asText(""));
         if (addressBtn != null) {
-            card.getChildren().add(new HBox(addressBtn));
+            actionButtons.getChildren().add(addressBtn);
         }
+
+        // Only show the "Message" button if the current user did NOT create this post
+        if (!isOwn(item)) {
+            Button messageBtn = new Button("💬 Message Poster");
+            messageBtn.getStyleClass().add("primary-button");
+
+            messageBtn.setOnAction(e -> {
+                long targetUserId = item.path("userId").asLong(-1);
+                if (targetUserId != -1) {
+                    if (MainController.getInstance() != null) {
+                        // Pass the posterName to the chat
+                        MainController.getInstance().openDirectChat(targetUserId, posterName);
+                    } else {
+                        com.catconnect.util.UiHelper.showError("Navigation error: Main screen not found.");
+                    }
+                } else {
+                    com.catconnect.util.UiHelper.showError("Cannot message this user (User ID not found).");
+                }
+            });
+            actionButtons.getChildren().add(messageBtn);
+        }
+
+        // Append action buttons to the bottom of the card if there are any
+        if (!actionButtons.getChildren().isEmpty()) {
+            card.getChildren().add(actionButtons);
+        }
+
         return card;
     }
 
     private void beginEdit(JsonNode item) {
         editingId = item.path("id").asLong();
         existingImageUrl = imageUrlFrom(item);
+
         typeBox.setValue(item.path("postType").asText("LOST"));
         descField.setText(item.path("catDescription").asText(""));
         locationField.setText(item.path("lastSeenLocation").asText(""));
         addressLinkField.setText(item.path("mapLink").asText(""));
         phoneField.setText(item.path("contactPhone").asText(""));
         imageUrlField.setText(existingImageUrl);
+
         addForm.setVisible(true);
         addForm.setManaged(true);
     }
@@ -107,6 +155,7 @@ public class LostFoundController extends BaseListController {
     private void showForm(boolean show) {
         addForm.setVisible(show);
         addForm.setManaged(show);
+
         if (!show) {
             descField.clear();
             locationField.clear();

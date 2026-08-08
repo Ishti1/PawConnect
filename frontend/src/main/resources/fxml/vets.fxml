@@ -20,9 +20,7 @@
                        promptText="Search vets, shops, shelters..."
                        prefWidth="420"/>
 
-            <ComboBox fx:id="categoryBox"
-                      promptText="Category"
-                      prefWidth="180"/>
+
 
             <Button text="Search"
                     onAction="#onSearch"

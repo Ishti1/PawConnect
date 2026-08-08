@@ -7,31 +7,89 @@
 <VBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.catconnect.controller.ChatController"
-      spacing="14"
-      style="-fx-background-color: transparent;">
+      spacing="16"
+      styleClass="chat-root-pane">
+
     <padding>
         <Insets top="6" right="2" bottom="12" left="2"/>
     </padding>
 
-    <Label text="Community Chat"
-           style="-fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: #2d3436;"/>
-
-    <Label fx:id="chatStatusLabel"
-           style="-fx-text-fill: #636e72; -fx-font-size: 13px;"
-           text="Connecting..."/>
-
-    <ListView fx:id="chatListView"
-              prefHeight="420"
-              style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 6;"/>
-
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <TextField fx:id="inputField" promptText="Type a message..."
-                   HBox.hgrow="ALWAYS"
-                   style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 10;"/>
-        <Button fx:id="sendButton"
-                text="Send"
-                onAction="#onSend"
-                styleClass="primary-button"/>
+    <!-- Header: title + connection status -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label fx:id="screenTitle" text="Chat" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <HBox styleClass="status-pill" alignment="CENTER_LEFT" spacing="6">
+            <Label fx:id="statusDot" text="●" styleClass="status-dot-offline"/>
+            <Label fx:id="chatStatusLabel" text="Connecting..." styleClass="status-text"/>
+        </HBox>
     </HBox>
-</VBox>
 
+    <!-- Segmented tab switcher -->
+    <HBox styleClass="seg-toggle" spacing="0">
+        <Button fx:id="btnCommunityTab"
+                text="🌍  Community Chat"
+                onAction="#onCommunityTabClick"
+                styleClass="seg-btn, seg-btn-active"
+                maxWidth="Infinity"
+                HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnDirectTab"
+                text="✉️  Direct Messages"
+                onAction="#onDirectTabClick"
+                styleClass="seg-btn"
+                maxWidth="Infinity"
+                HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Main content -->
+    <SplitPane dividerPositions="0.26" VBox.vgrow="ALWAYS" styleClass="chat-split-pane">
+
+        <!-- Left: contacts (only shown for Direct tab) -->
+        <VBox fx:id="contactPanel" spacing="10" styleClass="contact-panel"
+              visible="false" managed="false">
+            <Label text="Contacts" styleClass="contact-panel-title"/>
+            <ListView fx:id="userListView" styleClass="custom-chat-list" VBox.vgrow="ALWAYS"/>
+        </VBox>
+
+        <!-- Right: conversation -->
+        <VBox spacing="0" styleClass="conversation-panel">
+
+            <!-- Conversation Header -->
+            <HBox fx:id="chatHeaderBox" alignment="CENTER_LEFT" spacing="12" styleClass="chat-header-bar" visible="false" managed="false">
+                <StackPane fx:id="chatHeaderAvatar" styleClass="msg-avatar"/>
+                <Label fx:id="chatHeaderName" text="User Name" styleClass="chat-header-name"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="ℹ️" onAction="#onInfoClick" styleClass="icon-transparent-btn"/>
+            </HBox>
+
+            <ListView fx:id="chatListView" VBox.vgrow="ALWAYS" styleClass="custom-conversation-area"/>
+
+            <!-- Emoji Palette (Hidden by default) -->
+            <HBox fx:id="emojiPaletteBox" spacing="4" alignment="CENTER_LEFT" styleClass="emoji-palette" visible="false" managed="false">
+                <padding><Insets top="4" right="8" bottom="4" left="8"/></padding>
+            </HBox>
+
+            <HBox spacing="8" alignment="CENTER" styleClass="chat-bottom-bar">
+                <Button fx:id="emojiButton" text="😀" onAction="#onEmojiToggleClick" styleClass="icon-transparent-btn"/>
+                <TextField fx:id="inputField"
+                           promptText="Message..."
+                           HBox.hgrow="ALWAYS"
+                           styleClass="chat-input-field"/>
+                
+                <!-- Action Buttons Container (Right Side) -->
+                <HBox fx:id="actionButtonsBox" alignment="CENTER" spacing="6">
+                    <Button fx:id="micButton" text="🎤" styleClass="icon-transparent-btn"/>
+                    <Button fx:id="photoButton" text="📷" onAction="#onPhotoClick" styleClass="icon-transparent-btn"/>
+                    <Button fx:id="heartButton" text="❤️" onAction="#onHeartClick" styleClass="icon-transparent-btn"/>
+                </HBox>
+                
+                <!-- Send Button (Hidden by default, shown when typing) -->
+                <Button fx:id="sendButton"
+                        text="Send"
+                        onAction="#onSend"
+                        visible="false" managed="false"
+                        styleClass="send-text-btn"/>
+            </HBox>
+
+        </VBox>
+    </SplitPane>
+</VBox>

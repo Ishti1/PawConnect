@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="TOP_LEFT" spacing="15.0"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1">
+
+    <padding>
+        <Insets top="40.0" right="40.0" bottom="40.0" left="40.0"/>
+    </padding>
+
+    <!-- Main Welcome Title -->
+    <Label text="Welcome to CatConnect"
+           style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+
+    <!-- Subtitle / Description -->
+    <Label text="Your central hub for finding, helping, and celebrating cats."
+           style="-fx-font-size: 16px; -fx-text-fill: #666666;"
+           wrapText="true"/>
+
+    <!-- Quick Tip or Status Box -->
+    <VBox spacing="10.0" style="-fx-background-color: #f9f9f9; -fx-background-radius: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 10; -fx-padding: 20;">
+        <Label text="🐾 Quick Tip" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ff6b6b;"/>
+        <Label text="Use the sidebar on the left to navigate between Adoption listings, nearby Vets, and the Community Chat!"
+               style="-fx-font-size: 14px; -fx-text-fill: #555555;" wrapText="true"/>
+    </VBox>
+
+</VBox>

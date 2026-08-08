@@ -7,6 +7,7 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class ChatClient {
@@ -15,9 +16,21 @@ public class ChatClient {
     private WebSocketClient client;
     private Consumer<JsonNode> onMessage;
 
+    public void ensureConnected(Consumer<JsonNode> messageHandler) throws Exception {
+        onMessage = messageHandler;
+        if (isConnected()) {
+            return;
+        }
+        openConnection();
+    }
+
     public void connect(Consumer<JsonNode> messageHandler) throws Exception {
         disconnect();
         onMessage = messageHandler;
+        openConnection();
+    }
+
+    private void openConnection() throws Exception {
         String url = toWebSocketUrl(Session.getApiBaseUrl()) + "/ws/chat?token=" + Session.getToken();
         client = new WebSocketClient(URI.create(url)) {
             @Override
@@ -42,20 +55,29 @@ public class ChatClient {
         client.connectBlocking();
     }
 
-    public void send(String content) throws Exception {
+    public void subscribe(String roomId) throws Exception {
         if (client == null || !client.isOpen()) {
             throw new IllegalStateException("Chat not connected");
         }
-        client.send(mapper.writeValueAsString(java.util.Map.of(
+        client.send(mapper.writeValueAsString(Map.of(
+                "type", "subscribe",
+                "roomId", roomId
+        )));
+    }
+
+    public void send(String content, String roomId) throws Exception {
+        if (client == null || !client.isOpen()) {
+            throw new IllegalStateException("Chat not connected");
+        }
+        client.send(mapper.writeValueAsString(Map.of(
                 "content", content,
-                "roomId", "general"
+                "roomId", roomId
         )));
     }
 
     public void disconnect() {
-        if (client != null) {
+        if (client != null && client.isOpen()) {
             client.close();
-            client = null;
         }
     }
 

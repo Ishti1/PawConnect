@@ -69,10 +69,7 @@ public class VetsController extends BaseListController {
             adminActionBar.setVisible(isAdmin());
             adminActionBar.setManaged(isAdmin());
         }
-        if (categoryBox != null) {
-            categoryBox.getItems().setAll("Vets", "Emergency Vets", "Cat Shops", "Shelters");
-            categoryBox.setValue("Vets");
-        }
+
 
         loadData();
     }
@@ -184,7 +181,10 @@ public class VetsController extends BaseListController {
             String addressLower = address.toLowerCase();
 
             if (!cityLower.contains(selectedLower) && !addressLower.contains(selectedLower)) {
-                return new VBox();
+                VBox hiddenBox = new VBox();
+                hiddenBox.setVisible(false);
+                hiddenBox.setManaged(false); // Tells TilePane to collapse the space!
+                return hiddenBox;
             }
         }
 

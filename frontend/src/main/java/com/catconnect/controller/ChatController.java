@@ -7,69 +7,402 @@ import com.catconnect.util.UiHelper;
 import com.fasterxml.jackson.databind.JsonNode;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
+import java.io.File;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ChatController {
 
+    @FXML private Label screenTitle;
     @FXML private Label chatStatusLabel;
-    @FXML private ListView<String> chatListView;
+    @FXML private Label statusDot;
+    @FXML private VBox contactPanel;
+    @FXML private ListView<ChatMessage> chatListView;
     @FXML private TextField inputField;
     @FXML private Button sendButton;
+    @FXML private Button btnCommunityTab;
+    @FXML private Button btnDirectTab;
+    @FXML private ListView<String> userListView;
+    @FXML private Button photoButton;
+    @FXML private HBox chatHeaderBox;
+    @FXML private StackPane chatHeaderAvatar;
+    @FXML private Label chatHeaderName;
+    @FXML private HBox actionButtonsBox;
+    @FXML private Button heartButton;
+    @FXML private Button micButton;
+    @FXML private Button emojiButton;
+    @FXML private HBox emojiPaletteBox;
+
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final ChatClient chatClient = new ChatClient();
+    private String currentRoomId = "general";
+    private Long lastMessagedUserId = null;
+    private String lastMessagedUserName = "User";
+    private final Map<String, Long> nameToIdMap = new HashMap<>();
 
     @FXML
     public void initialize() {
-        chatStatusLabel.setText("Connecting...");
-        chatListView.getItems().clear();
-        inputField.setDisable(true);
-        sendButton.setDisable(true);
+        chatListView.setCellFactory(param -> new ChatCell());
+        chatListView.setPlaceholder(placeholderLabel("No messages yet — say hi 👋"));
+
+        userListView.setCellFactory(param -> new ContactCell());
+        userListView.setPlaceholder(placeholderLabel("No contacts yet"));
+
+        openCommunityChat();
+        inputField.setOnAction(e -> onSend());
+        
+        inputField.textProperty().addListener((obs, oldText, newText) -> {
+            boolean hasText = newText != null && !newText.trim().isEmpty();
+            actionButtonsBox.setVisible(!hasText);
+            actionButtonsBox.setManaged(!hasText);
+            sendButton.setVisible(hasText);
+            sendButton.setManaged(hasText);
+        });
+
+        userListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                Long id = nameToIdMap.get(newVal);
+                if (id != null) openChatWithUser(id, newVal);
+            }
+        });
+        
+        setupEmojiPalette();
+    }
+
+    private void setupEmojiPalette() {
+        if (emojiPaletteBox == null) return;
+        String[] emojis = {"😀", "😂", "😍", "🥺", "😭", "😡", "🐾"};
+        for (String emoji : emojis) {
+            Button btn = new Button();
+            btn.getStyleClass().add("reaction-btn");
+            
+            ImageView imgView = new ImageView();
+            imgView.setFitWidth(20);
+            imgView.setFitHeight(20);
+            ApiClient.get().loadImageAsync(getTwemojiUrl(emoji), imgView);
+            btn.setGraphic(imgView);
+            
+            btn.setOnAction(e -> {
+                inputField.appendText(emoji);
+                inputField.requestFocus();
+                emojiPaletteBox.setVisible(false);
+                emojiPaletteBox.setManaged(false);
+            });
+            emojiPaletteBox.getChildren().add(btn);
+        }
+    }
+    
+    private String getTwemojiUrl(String emoji) {
+        String code;
+        switch (emoji) {
+            case "😀": code = "1f600"; break;
+            case "😂": code = "1f602"; break;
+            case "😍": code = "1f60d"; break;
+            case "🥺": code = "1f97a"; break;
+            case "😭": code = "1f62d"; break;
+            case "😡": code = "1f621"; break;
+            case "🐾": code = "1f43e"; break;
+            case "👍": code = "1f44d"; break;
+            case "❤️": code = "2764"; break;
+            default: code = "1f600"; break;
+        }
+        return "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/" + code + ".png";
+    }
+
+    private javafx.scene.text.TextFlow createEmojiTextFlow(String text) {
+        javafx.scene.text.TextFlow flow = new javafx.scene.text.TextFlow();
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(😀|😂|😍|🥺|😭|😡|🐾|👍|❤️)");
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        int lastEnd = 0;
+        while (matcher.find()) {
+            if (matcher.start() > lastEnd) {
+                javafx.scene.text.Text t = new javafx.scene.text.Text(text.substring(lastEnd, matcher.start()));
+                t.setFill(javafx.scene.paint.Color.valueOf("#2d3436"));
+                flow.getChildren().add(t);
+            }
+            String emoji = matcher.group(1);
+            ImageView img = new ImageView();
+            img.setFitWidth(16);
+            img.setFitHeight(16);
+            
+            // Fix vertical alignment for inline images in TextFlow
+            javafx.scene.layout.VBox imgContainer = new javafx.scene.layout.VBox(img);
+            imgContainer.setAlignment(Pos.CENTER);
+            imgContainer.setPadding(new javafx.geometry.Insets(0, 1, -3, 1));
+            
+            ApiClient.get().loadImageAsync(getTwemojiUrl(emoji), img);
+            flow.getChildren().add(imgContainer);
+            lastEnd = matcher.end();
+        }
+        if (lastEnd < text.length()) {
+            javafx.scene.text.Text t = new javafx.scene.text.Text(text.substring(lastEnd));
+            t.setFill(javafx.scene.paint.Color.valueOf("#2d3436"));
+            flow.getChildren().add(t);
+        }
+        return flow;
+    }
+
+    private Label placeholderLabel(String text) {
+        Label lbl = new Label(text);
+        lbl.getStyleClass().add("empty-label");
+        return lbl;
+    }
+
+    @FXML
+    private void onCommunityTabClick() {
+        openCommunityChat();
+    }
+
+    @FXML
+    private void onDirectTabClick() {
+        contactPanel.setVisible(true);
+        contactPanel.setManaged(true);
+
+        if (userListView.getItems().isEmpty()) {
+            loadChatContacts();
+        }
+
+        updateTabStyles(btnDirectTab, btnCommunityTab);
+
+        if (lastMessagedUserId != null) {
+            openChatWithUser(lastMessagedUserId, lastMessagedUserName);
+        } else {
+            showEmptyDirectMessageState();
+        }
+    }
+
+    public void openCommunityChat() {
+        updateTabStyles(btnCommunityTab, btnDirectTab);
+        contactPanel.setVisible(false);
+        contactPanel.setManaged(false);
+
+        setupHeader("Community Chat");
+        loadRoom("general", "Community Chat");
+    }
+
+    private void loadChatContacts() {
+        new Thread(() -> {
+            try {
+                JsonNode contacts = ApiClient.get().getList("/chat/contacts");
+                Platform.runLater(() -> {
+                    userListView.getItems().clear();
+                    nameToIdMap.clear();
+                    if (contacts != null && contacts.isArray()) {
+                        for (JsonNode contact : contacts) {
+                            String name = contact.path("displayName").asText();
+                            Long id = contact.path("id").asLong();
+                            nameToIdMap.put(name, id);
+                            userListView.getItems().add(name);
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> UiHelper.showError("Failed to load contacts."));
+            }
+        }).start();
+    }
+
+    public void openChatWithUser(Long targetUserId, String userName) {
+        this.lastMessagedUserId = targetUserId;
+        this.lastMessagedUserName = userName;
+        updateTabStyles(btnDirectTab, btnCommunityTab);
+        setupHeader(userName);
+        loadRoom(dmRoomId(targetUserId), "Direct Message: " + userName);
+    }
+    
+    private void setupHeader(String name) {
+        chatHeaderBox.setVisible(true);
+        chatHeaderBox.setManaged(true);
+        chatHeaderName.setText(name);
+        chatHeaderAvatar.getChildren().clear();
+        String initial = (name == null || name.isBlank()) ? "?" : name.trim().substring(0, 1).toUpperCase();
+        chatHeaderAvatar.getChildren().add(new Label(initial));
+    }
+
+    private String dmRoomId(Long targetUserId) {
+        Long selfId = Session.getCurrentUser() != null ? Session.getCurrentUser().getId() : null;
+        if (selfId == null) {
+            return "dm_" + targetUserId;
+        }
+        long lo = Math.min(selfId, targetUserId);
+        long hi = Math.max(selfId, targetUserId);
+        return "dm_" + lo + "_" + hi;
+    }
+
+    private void showEmptyDirectMessageState() {
+        updateTabStyles(btnDirectTab, btnCommunityTab);
+        this.currentRoomId = "dm_empty";
+        setStatusOffline();
+
+        Platform.runLater(() -> {
+            if (screenTitle != null) screenTitle.setText("Direct Messages");
+            chatStatusLabel.setText("No active chat");
+            chatListView.getItems().clear();
+            chatListView.setPlaceholder(placeholderLabel("Select a contact to start a direct message"));
+            inputField.setDisable(true);
+            chatHeaderBox.setVisible(false);
+            chatHeaderBox.setManaged(false);
+        });
+    }
+
+    private void loadRoom(String roomId, String title) {
+        this.currentRoomId = roomId;
+        Platform.runLater(() -> {
+            if (screenTitle != null) screenTitle.setText(title);
+            chatStatusLabel.setText("Connecting...");
+            setStatusOffline();
+            chatListView.setPlaceholder(placeholderLabel("No messages yet — say hi 👋"));
+            chatListView.getItems().clear();
+            inputField.setDisable(true);
+        });
 
         new Thread(() -> {
             try {
-                JsonNode history = ApiClient.get().getList("/chat/messages");
-                if (history != null && history.isArray()) {
-                    for (JsonNode msg : history) {
-                        Platform.runLater(() -> appendChatLine(msg));
-                    }
+                String endpoint = "/chat/messages";
+                if (!roomId.equals("general")) {
+                    endpoint += "?roomId=" + URLEncoder.encode(roomId, StandardCharsets.UTF_8);
                 }
+                JsonNode history = ApiClient.get().getList(endpoint);
 
-                chatClient.connect(this::appendChatLine);
+                chatClient.ensureConnected(this::handleIncomingMessage);
+                chatClient.subscribe(roomId);
 
                 Platform.runLater(() -> {
-                    chatStatusLabel.setText("Connected — messages update in real time");
+                    chatListView.getItems().clear();
+                    if (history != null && history.isArray()) {
+                        for (JsonNode msg : history) appendChatLine(msg, false);
+                    }
+                    chatStatusLabel.setText("Connected");
+                    setStatusOnline();
                     inputField.setDisable(false);
-                    sendButton.setDisable(false);
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> chatStatusLabel.setText("Chat offline: " + safeMessage(e)));
+                Platform.runLater(() -> {
+                    chatStatusLabel.setText("Offline: " + safeMessage(e));
+                    setStatusOffline();
+                });
             }
         }).start();
+    }
 
-        inputField.setOnAction(e -> onSend());
+    private void setStatusOnline() {
+        if (statusDot != null) {
+            statusDot.getStyleClass().removeAll("status-dot-offline");
+            if (!statusDot.getStyleClass().contains("status-dot-online")) {
+                statusDot.getStyleClass().add("status-dot-online");
+            }
+        }
+    }
+
+    private void setStatusOffline() {
+        if (statusDot != null) {
+            statusDot.getStyleClass().removeAll("status-dot-online");
+            if (!statusDot.getStyleClass().contains("status-dot-offline")) {
+                statusDot.getStyleClass().add("status-dot-offline");
+            }
+        }
+    }
+
+    @FXML
+    private void onPhotoClick() {
+        if (currentRoomId.equals("dm_empty")) return;
+
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Select Image");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+        File file = fc.showOpenDialog(photoButton.getScene().getWindow());
+        if (file == null) return;
+
+        inputField.setDisable(true);
+
+        new Thread(() -> {
+            try {
+                String url = ApiClient.get().uploadImage(file, "chat");
+                String baseUrl = Session.getApiBaseUrl();
+                if (baseUrl.endsWith("/api")) {
+                    baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
+                }
+                String fullUrl = baseUrl + url;
+                String imgMessage = "[img]" + fullUrl + "[/img]";
+
+                if (chatClient.isConnected()) {
+                    chatClient.send(imgMessage, currentRoomId);
+                } else {
+                    ApiClient.get().postJson("/chat/messages", Map.of("content", imgMessage, "roomId", currentRoomId));
+                    Platform.runLater(() -> {
+                        String myName = Session.getCurrentUser() != null ? Session.getCurrentUser().getDisplayName() : "Me";
+                        chatListView.getItems().add(new ChatMessage(myName, imgMessage, true, LocalDateTime.now().format(TIME_FMT)));
+                        chatListView.scrollTo(chatListView.getItems().size() - 1);
+                    });
+                }
+            } catch (Exception ex) {
+                Platform.runLater(() -> UiHelper.showError(safeMessage(ex)));
+            } finally {
+                Platform.runLater(() -> {
+                    inputField.setDisable(false);
+                    inputField.requestFocus();
+                });
+            }
+        }).start();
     }
 
     @FXML
     private void onSend() {
         String text = inputField.getText() != null ? inputField.getText().trim() : "";
-        if (text.isEmpty()) {
-            return;
-        }
+        if (text.isEmpty() || currentRoomId.equals("dm_empty")) return;
         inputField.setDisable(true);
-        sendButton.setDisable(true);
+        sendText(text);
+    }
 
+    @FXML
+    private void onHeartClick() {
+        if (currentRoomId.equals("dm_empty")) return;
+        sendText("❤️");
+    }
+    
+    @FXML
+    private void onEmojiToggleClick() {
+        if (emojiPaletteBox != null) {
+            boolean isVisible = emojiPaletteBox.isVisible();
+            emojiPaletteBox.setVisible(!isVisible);
+            emojiPaletteBox.setManaged(!isVisible);
+        }
+    }
+    
+    @FXML
+    private void onInfoClick() {
+        if (currentRoomId.equals("dm_empty")) return;
+        String name = chatHeaderName.getText();
+        UiHelper.showError("Contact Info: " + name + "\nActive since 2026.\nMore info coming soon!");
+    }
+
+    private void sendText(String text) {
         new Thread(() -> {
             try {
                 if (chatClient.isConnected()) {
-                    chatClient.send(text);
+                    chatClient.send(text, currentRoomId);
                 } else {
-                    ApiClient.get().postJson("/chat/messages",
-                            Map.of("content", text, "roomId", "general"));
+                    ApiClient.get().postJson("/chat/messages", Map.of("content", text, "roomId", currentRoomId));
+                    Platform.runLater(() -> {
+                        String myName = Session.getCurrentUser() != null ? Session.getCurrentUser().getDisplayName() : "Me";
+                        chatListView.getItems().add(new ChatMessage(myName, text, true, LocalDateTime.now().format(TIME_FMT)));
+                        chatListView.scrollTo(chatListView.getItems().size() - 1);
+                    });
                 }
                 Platform.runLater(() -> inputField.clear());
             } catch (Exception ex) {
@@ -77,29 +410,218 @@ public class ChatController {
             } finally {
                 Platform.runLater(() -> {
                     inputField.setDisable(false);
-                    sendButton.setDisable(false);
+                    inputField.requestFocus();
                 });
             }
         }).start();
     }
 
-    public void disconnect() {
-        chatClient.disconnect();
-    }
-
-    private void appendChatLine(JsonNode msg) {
-        if (chatListView == null) {
+    private void handleIncomingMessage(JsonNode msg) {
+        String msgRoomId = msg.path("roomId").asText("");
+        if (!msgRoomId.isEmpty() && !msgRoomId.equals(currentRoomId)) {
             return;
         }
-        String sender = msg.path("senderName").asText("User");
-        String content = msg.path("content").asText("");
-        String line = sender + ": " + content;
-        chatListView.getItems().add(line);
-        chatListView.scrollTo(chatListView.getItems().size() - 1);
+        appendChatLine(msg, true);
     }
 
-    private String safeMessage(Exception e) {
-        return e.getMessage() != null ? e.getMessage() : "Error";
+    private void appendChatLine(JsonNode msg, boolean scroll) {
+        String senderName = msg.path("senderName").asText("User");
+        String content = msg.path("content").asText("");
+        String myName = (Session.getCurrentUser() != null) ? Session.getCurrentUser().getDisplayName() : "Me";
+        boolean mine = senderName.equals(myName);
+        
+        String timeStr = msg.path("sentAt").asText("");
+        String time;
+        if (timeStr.isEmpty()) {
+            time = LocalDateTime.now().format(TIME_FMT);
+        } else {
+            try {
+                time = LocalDateTime.parse(timeStr).format(TIME_FMT);
+            } catch (Exception e) {
+                time = LocalDateTime.now().format(TIME_FMT);
+            }
+        }
+
+        ChatMessage message = new ChatMessage(mine ? "Me" : senderName, content, mine, time);
+        Platform.runLater(() -> {
+            chatListView.getItems().add(message);
+            if (scroll) {
+                chatListView.scrollTo(chatListView.getItems().size() - 1);
+            }
+        });
+    }
+
+    private void updateTabStyles(Button activeBtn, Button inactiveBtn) {
+        if (activeBtn != null && !activeBtn.getStyleClass().contains("seg-btn-active")) {
+            activeBtn.getStyleClass().add("seg-btn-active");
+        }
+        if (inactiveBtn != null) {
+            inactiveBtn.getStyleClass().remove("seg-btn-active");
+        }
+    }
+
+    public void disconnect() {
+        if (chatClient != null) {
+            chatClient.disconnect();
+        }
+    }
+
+    private String safeMessage(Exception e) { return e.getMessage() != null ? e.getMessage() : "Error"; }
+
+    /** Simple immutable model for a single chat bubble. */
+    private static class ChatMessage {
+        final String sender;
+        final String content;
+        final boolean mine;
+        final String time;
+        String reaction; // Visual only
+
+        ChatMessage(String sender, String content, boolean mine, String time) {
+            this.sender = sender;
+            this.content = content;
+            this.mine = mine;
+            this.time = time;
+        }
+    }
+
+    private static StackPane avatarCircle(String name, String styleClass) {
+        String initial = (name == null || name.isBlank()) ? "?" : name.trim().substring(0, 1).toUpperCase();
+        StackPane circle = new StackPane();
+        circle.getStyleClass().add(styleClass);
+        circle.getChildren().add(new Label(initial));
+        return circle;
+    }
+
+    private class ChatCell extends ListCell<ChatMessage> {
+        @Override
+        protected void updateItem(ChatMessage item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setGraphic(null);
+                setText(null);
+                return;
+            }
+
+            boolean isImage = item.content.startsWith("[img]") && item.content.endsWith("[/img]");
+            javafx.scene.Node messageNode;
+
+            if (isImage) {
+                String url = item.content.substring(5, item.content.length() - 6);
+                ImageView imgView = new ImageView();
+                imgView.setFitWidth(200);
+                imgView.setPreserveRatio(true);
+                ApiClient.get().loadImageAsync(url, imgView);
+
+                VBox imgBox = new VBox(imgView);
+                imgBox.getStyleClass().add(item.mine ? "bubble-outgoing" : "bubble-incoming");
+                messageNode = imgBox;
+            } else {
+                javafx.scene.text.TextFlow flow = createEmojiTextFlow(item.content);
+                VBox bubble = new VBox(flow);
+                bubble.getStyleClass().add(item.mine ? "bubble-outgoing" : "bubble-incoming");
+                messageNode = bubble;
+            }
+            
+            // Wrap in StackPane to overlay reaction
+            StackPane bubbleWrapper = new StackPane(messageNode);
+            if (item.reaction != null) {
+                ImageView reactionImg = new ImageView();
+                reactionImg.setFitWidth(14);
+                reactionImg.setFitHeight(14);
+                ApiClient.get().loadImageAsync(getTwemojiUrl(item.reaction), reactionImg);
+                
+                StackPane reactionBubble = new StackPane(reactionImg);
+                reactionBubble.setMaxSize(StackPane.USE_PREF_SIZE, StackPane.USE_PREF_SIZE);
+                reactionBubble.getStyleClass().add("attached-reaction");
+                StackPane.setAlignment(reactionBubble, item.mine ? Pos.BOTTOM_LEFT : Pos.BOTTOM_RIGHT);
+                // Offset the reaction so it hangs off the bottom corner
+                StackPane.setMargin(reactionBubble, new javafx.geometry.Insets(0, item.mine ? 0 : -8, -8, item.mine ? -8 : 0));
+                bubbleWrapper.getChildren().add(reactionBubble);
+            }
+
+            Label timeLabel = new Label(item.time);
+            timeLabel.getStyleClass().add("message-time-label");
+
+            VBox bubbleColumn = new VBox(2);
+            if (!item.mine) {
+                Label senderLabel = new Label(item.sender);
+                senderLabel.getStyleClass().add("message-sender-label");
+                bubbleColumn.getChildren().add(senderLabel);
+            }
+            bubbleColumn.getChildren().add(bubbleWrapper);
+            bubbleColumn.setAlignment(item.mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+            HBox row = new HBox(8);
+            row.setStyle("-fx-background-color: transparent;");
+
+            // Reaction menu that shows on hover
+            HBox reactionMenu = new HBox(4);
+            reactionMenu.setAlignment(Pos.CENTER);
+            reactionMenu.setMaxHeight(StackPane.USE_PREF_SIZE);
+            reactionMenu.getStyleClass().add("reaction-menu");
+            reactionMenu.setVisible(false);
+            
+            String[] reactionEmojis = {"👍", "❤️", "😂"};
+            for (String emoji : reactionEmojis) {
+                Button btn = new Button();
+                btn.getStyleClass().add("reaction-btn");
+                
+                ImageView reactionImg = new ImageView();
+                reactionImg.setFitWidth(18);
+                reactionImg.setFitHeight(18);
+                ApiClient.get().loadImageAsync(getTwemojiUrl(emoji), reactionImg);
+                btn.setGraphic(reactionImg);
+                
+                btn.setOnAction(e -> {
+                    item.reaction = emoji;
+                    getListView().refresh();
+                });
+                reactionMenu.getChildren().add(btn);
+            }
+
+            row.hoverProperty().addListener((obs, wasHovered, isHovered) -> {
+                reactionMenu.setVisible(isHovered);
+            });
+
+            if (item.mine) {
+                row.setAlignment(Pos.CENTER_RIGHT);
+                row.getChildren().addAll(reactionMenu, bubbleColumn, timeLabel);
+            } else {
+                StackPane avatar = avatarCircle(item.sender, "msg-avatar");
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.getChildren().addAll(avatar, bubbleColumn, reactionMenu, timeLabel);
+            }
+
+            setGraphic(row);
+            setText(null);
+        }
+    }
+
+    private class ContactCell extends ListCell<String> {
+        @Override
+        protected void updateItem(String name, boolean empty) {
+            super.updateItem(name, empty);
+            if (empty || name == null) {
+                setGraphic(null);
+                setText(null);
+                return;
+            }
+
+            StackPane avatar = avatarCircle(name, "contact-avatar");
+
+            Label nameLabel = new Label(name);
+            nameLabel.getStyleClass().add("contact-name");
+
+            VBox textCol = new VBox(2);
+            textCol.getChildren().add(nameLabel);
+
+            HBox row = new HBox(10, avatar, textCol);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.getStyleClass().add("contact-cell");
+            HBox.setHgrow(textCol, Priority.ALWAYS);
+
+            setGraphic(row);
+            setText(null);
+        }
     }
 }
-

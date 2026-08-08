@@ -180,7 +180,8 @@ public class ResourceControllers {
 
     @GetMapping("/api/lost-found")
     public List<LostFoundPost> lostFound() {
-        return lostFoundPostRepository.findByStatus("ACTIVE");
+        // Now it calls the service method to attach the senderName before returning!
+        return lostFoundService.getAllActivePosts();
     }
 
     @PostMapping("/api/lost-found")

@@ -3,9 +3,11 @@ package com.catconnect.dto;
 import com.catconnect.entity.User;
 import lombok.Builder;
 import lombok.Data;
+import lombok.AllArgsConstructor; // Add this import
 
 @Data
 @Builder
+@AllArgsConstructor // Add this annotation!
 public class UserDto {
 
     private Long id;

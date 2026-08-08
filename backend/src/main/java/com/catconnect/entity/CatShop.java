@@ -26,6 +26,10 @@ public class CatShop {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private BigDecimal rating;
+
+    @Column(name = "open_hours")
+    private String openHours;
+
     private String city;
 
     @Column(name = "user_id")

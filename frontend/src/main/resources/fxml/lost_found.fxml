@@ -53,6 +53,11 @@
     <!-- Status / loading -->
     <Label fx:id="statusLabel" styleClass="action-bar-hint" text="Loading posts..." />
 
-    <!-- Posts list -->
-    <VBox fx:id="listBox" spacing="10" />
+    <!-- Posts list (Corrected to TilePane) -->
+    <TilePane fx:id="listBox"
+              prefColumns="2"
+              hgap="20"
+              vgap="20"
+              prefTileWidth="480"
+              tileAlignment="TOP_LEFT" />
 </VBox>

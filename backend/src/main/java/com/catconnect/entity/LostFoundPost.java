@@ -23,6 +23,10 @@ public class LostFoundPost {
     @Column(name = "user_id")
     private Long userId;
 
+    // Transient means it is NOT in the database, but it IS sent in the JSON.
+    @Transient
+    private String senderName;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "post_type", nullable = false)
     private PostType postType;
