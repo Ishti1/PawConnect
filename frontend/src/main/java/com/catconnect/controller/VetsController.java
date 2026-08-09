@@ -10,13 +10,24 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.layout.HBox;
+import javafx.scene.web.WebView;
+import javafx.scene.web.WebEngine;
+import netscape.javascript.JSObject;
+import javafx.scene.layout.StackPane;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
+import java.time.Duration;
+import java.util.List;
+import java.util.ArrayList;
 
 
 public class VetsController extends BaseListController {
 
     @FXML private Label screenTitle;
     @FXML private VBox addForm;
-    @FXML private TextField nameField, addressField, phoneField, hoursField, cityField, websiteField, imageUrlField;
+    @FXML private TextField nameField, addressField, phoneField, hoursField, cityField, websiteField, imageUrlField, ratingField;
     @FXML private CheckBox emergencyBox;
     @FXML private ImageView photoPreview;
     @FXML private Label photoLabel;
@@ -25,6 +36,7 @@ public class VetsController extends BaseListController {
     @FXML private VBox adminActionBar;
     @FXML private TextField searchField;
     @FXML private ComboBox<String> categoryBox;
+    
     private boolean emergencyOnly;
     private Boolean lastEmergencyMode;
     private Long editingId;
@@ -70,9 +82,9 @@ public class VetsController extends BaseListController {
             adminActionBar.setManaged(isAdmin());
         }
 
-
         loadData();
     }
+    
     @FXML
     private void onSearch() {
         resetListState();
@@ -105,8 +117,17 @@ public class VetsController extends BaseListController {
     }
     @Override
     protected String getApiPath() {
-        return emergencyOnly ? "/vets/emergency" : "/vets";
+        String base = emergencyOnly ? "/vets/emergency" : "/vets";
+        String loc = com.catconnect.util.Session.getSelectedLocation();
+        if (loc != null && !loc.trim().isEmpty() && !"All".equalsIgnoreCase(loc)) {
+            try {
+                return base + "?location=" + java.net.URLEncoder.encode(loc, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception e) {}
+        }
+        return base;
     }
+    
+
 
     @FXML
     private void onSave() {
@@ -125,6 +146,11 @@ public class VetsController extends BaseListController {
         body.put("city", city);
         body.put("mapLink", websiteField.getText().trim());
         body.put("emergency", emergencyBox.isSelected());
+        try {
+            if (!ratingField.getText().isBlank()) {
+                body.put("rating", Double.parseDouble(ratingField.getText().trim()));
+            }
+        } catch (Exception e) {}
 
         if ("Dhanmondi".equalsIgnoreCase(city)) {
             body.put("latitude", 23.7465);
@@ -167,12 +193,20 @@ public class VetsController extends BaseListController {
         String city = item.path("city").asText("").trim();
         String address = item.path("address").asText("").trim();
 
-        double distanceKm = 0;
+        double userLat = com.catconnect.util.Session.getUserLat();
+        double userLon = com.catconnect.util.Session.getUserLon();
+        double vetLat = item.path("latitude").asDouble(0);
+        double vetLon = item.path("longitude").asDouble(0);
 
-        if ("Dhanmondi".equalsIgnoreCase(city)) {
-            distanceKm = 0.5 + Math.random() * 3;
-        } else if ("Uttara".equalsIgnoreCase(city)) {
-            distanceKm = 0.5 + Math.random() * 3;
+        double distanceKm = 0;
+        if (userLat != 0 && userLon != 0 && vetLat != 0 && vetLon != 0) {
+            distanceKm = calculateDistance(userLat, userLon, vetLat, vetLon);
+        } else {
+            if ("Dhanmondi".equalsIgnoreCase(city)) {
+                distanceKm = 0.5 + Math.random() * 3;
+            } else if ("Uttara".equalsIgnoreCase(city)) {
+                distanceKm = 0.5 + Math.random() * 3;
+            }
         }
 
         if (!"All".equalsIgnoreCase(selected)) {
@@ -289,6 +323,7 @@ public class VetsController extends BaseListController {
         hoursField.setText(item.path("openHours").asText(""));
         cityField.setText(item.path("city").asText(""));
         websiteField.setText(item.path("mapLink").asText(""));
+        ratingField.setText(item.path("rating").asText(""));
         emergencyBox.setSelected(item.path("emergency").asBoolean(false));
         imageUrlField.setText(existingImageUrl);
 
@@ -307,6 +342,7 @@ public class VetsController extends BaseListController {
             hoursField.clear();
             cityField.clear();
             websiteField.clear();
+            ratingField.clear();
             emergencyBox.setSelected(emergencyOnly);
             clearSelectedImage(photoPreview, photoLabel, imageUrlField);
             editingId = null;
@@ -314,5 +350,15 @@ public class VetsController extends BaseListController {
         } else if (emergencyOnly) {
             emergencyBox.setSelected(true);
         }
+    }
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371; // Earth radius in km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 }

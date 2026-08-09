@@ -3,40 +3,39 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+
+<?import javafx.scene.layout.TilePane?>
+
 
 <VBox spacing="14" styleClass="screen-root" stylesheets="@../styles/app.css"
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.catconnect.controller.CatShopsController">
+      fx:controller="com.catconnect.controller.ShopsController">
     <padding><Insets top="4" right="2" bottom="16" left="2"/></padding>
-    <Label fx:id="screenTitle" text="🛍️ Cat Shops &amp; Supplies" styleClass="screen-title"/>
+    <Label fx:id="screenTitle" text="🏪 Nearby Cat Shops" styleClass="screen-title"/>
     <VBox styleClass="search-header" spacing="12">
         <Label text="🐾 PawConnect" styleClass="brand-title"/>
 
         <HBox spacing="12">
             <TextField fx:id="searchField"
-                       promptText="Search cat shops, food, supplies..."
+                       promptText="Search vets, shops, shelters..."
                        prefWidth="420"/>
+
+
 
             <Button text="Search"
                     onAction="#onSearch"
                     styleClass="primary-button"/>
 
-            <Button fx:id="addShopButton"
-                    text="+ Add Shop"
+            <Button fx:id="addVetButton"
+                    text="+ Add Vet"
                     onAction="#onAdd"
                     styleClass="primary-button"/>
         </HBox>
     </VBox>
-    <VBox styleClass="form-card" spacing="10">
-        <Label text="Find cat shops near selected area" styleClass="section-label"/>
 
-        <HBox spacing="10">
-            <ComboBox fx:id="locationBox" promptText="Select Location"/>
-            <Button text="Find Nearby" onAction="#onFindNearby" styleClass="primary-button"/>
-        </HBox>
-    </VBox>
     <VBox fx:id="addForm" styleClass="form-card" spacing="10" visible="false" managed="false">
-        <Label text="Cat Shop listing" styleClass="section-label"/>
+        <Label text="Shop listing" styleClass="section-label"/>
         <Label text="Name (required)" styleClass="form-label"/><TextField fx:id="nameField"/>
         <Label text="Address" styleClass="form-label"/><TextField fx:id="addressField"/>
         <Label text="Phone" styleClass="form-label"/><TextField fx:id="phoneField"/>
@@ -44,6 +43,8 @@
         <Label text="City" styleClass="form-label"/><TextField fx:id="cityField"/>
         <Label text="Website link" styleClass="form-label"/>
         <TextField fx:id="websiteField" promptText="https://example.com"/>
+        <Label text="Rating (0.0 to 5.0)" styleClass="form-label"/>
+        <TextField fx:id="ratingField" promptText="e.g. 4.8"/>
         <Label text="Photo (optional)" styleClass="form-label"/>
         <HBox spacing="10"><Button text="Choose photo..." onAction="#onChooseImage" styleClass="secondary-button"/>
             <Button text="Clear" onAction="#onClearImage" styleClass="secondary-button"/></HBox>
@@ -53,7 +54,7 @@
         <HBox spacing="10"><Button text="Save" onAction="#onSave" styleClass="primary-button"/>
             <Button text="Cancel" onAction="#onCancelAdd" styleClass="secondary-button"/></HBox>
     </VBox>
-    <Label text="Nearby Cat Shops" styleClass="section-label"/>
+    <Label text="Nearby Shops" styleClass="section-label"/>
 
     <Label fx:id="statusLabel"
            text="Loading..."

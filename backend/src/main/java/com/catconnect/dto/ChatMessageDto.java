@@ -15,6 +15,7 @@ public class ChatMessageDto {
     private String content;
     private String roomId;
     private LocalDateTime sentAt; // Add this
+    private String reaction;
 
     public static ChatMessageDto from(ChatMessage m) {
         return ChatMessageDto.builder()
@@ -24,6 +25,7 @@ public class ChatMessageDto {
                 .content(m.getContent())
                 .roomId(m.getRoomId())
                 .sentAt(m.getSentAt())
+                .reaction(m.getReaction())
                 .build();
     }
 }

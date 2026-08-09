@@ -10,29 +10,44 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.layout.HBox;
+import javafx.scene.web.WebView;
+import javafx.scene.web.WebEngine;
+import netscape.javascript.JSObject;
+import javafx.scene.layout.StackPane;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
+import java.time.Duration;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class ShopsController extends BaseListController {
 
     @FXML private Label screenTitle;
     @FXML private VBox addForm;
-    @FXML private TextField nameField, addressField, phoneField, hoursField, cityField, websiteField, imageUrlField;
+    @FXML private TextField nameField, addressField, phoneField, hoursField, cityField, websiteField, imageUrlField, ratingField;
     @FXML private ImageView photoPreview;
     @FXML private Label photoLabel;
     @FXML private ComboBox<String> locationBox;
-    @FXML private Button addShopButton;
+    @FXML private Button addVetButton;
     @FXML private VBox adminActionBar;
     @FXML private TextField searchField;
+    @FXML private ComboBox<String> categoryBox;
     private Long editingId;
     private String existingImageUrl;
+    
+
 
     @FXML
     public void initialize() {
         boolean admin = com.catconnect.util.Session.getCurrentUser() != null
                 && com.catconnect.util.Session.getCurrentUser().isAdmin();
 
-        if (addShopButton != null) {
-            addShopButton.setVisible(admin);
-            addShopButton.setManaged(admin);
+        if (addVetButton != null) {
+            addVetButton.setVisible(admin);
+            addVetButton.setManaged(admin);
         }
 
         if (addForm != null) {
@@ -40,11 +55,11 @@ public class ShopsController extends BaseListController {
             addForm.setManaged(false);
         }
 
+
         if (locationBox != null) {
             locationBox.getItems().setAll("All", "Dhanmondi", "Uttara");
             locationBox.setValue("All");
         }
-
         if (adminActionBar != null) {
             adminActionBar.setVisible(isAdmin());
             adminActionBar.setManaged(isAdmin());
@@ -52,22 +67,23 @@ public class ShopsController extends BaseListController {
 
         loadData();
     }
-
+    
     @FXML
     private void onSearch() {
         resetListState();
         loadData();
     }
-
     @FXML
     private void onAdd() {
+        boolean admin = com.catconnect.util.Session.getCurrentUser() != null
+                && com.catconnect.util.Session.getCurrentUser().isAdmin();
+
         if (!isAdmin()) {
-            com.catconnect.util.UiHelper.showError("Only admin can add cat shop listings.");
+            com.catconnect.util.UiHelper.showError("Only admin can add vet listings.");
             return;
         }
         showForm(true);
     }
-
     @FXML private void onRefresh() { loadData(); }
     @FXML private void onCancelAdd() { showForm(false); }
     @FXML private void onChooseImage() { chooseImage(photoPreview, photoLabel); }
@@ -78,16 +94,23 @@ public class ShopsController extends BaseListController {
         resetListState();
         loadData();
     }
-
     private boolean isAdmin() {
         return com.catconnect.util.Session.getCurrentUser() != null
                 && com.catconnect.util.Session.getCurrentUser().isAdmin();
     }
-
     @Override
     protected String getApiPath() {
-        return "/cat-shops";
+        String base = "/shops";
+        String loc = com.catconnect.util.Session.getSelectedLocation();
+        if (loc != null && !loc.trim().isEmpty() && !"All".equalsIgnoreCase(loc)) {
+            try {
+                return base + "?location=" + java.net.URLEncoder.encode(loc, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception e) {}
+        }
+        return base;
     }
+    
+
 
     @FXML
     private void onSave() {
@@ -105,6 +128,11 @@ public class ShopsController extends BaseListController {
         body.put("openHours", hoursField.getText().trim());
         body.put("city", city);
         body.put("mapLink", websiteField.getText().trim());
+        try {
+            if (!ratingField.getText().isBlank()) {
+                body.put("rating", Double.parseDouble(ratingField.getText().trim()));
+            }
+        } catch (Exception e) {}
 
         if ("Dhanmondi".equalsIgnoreCase(city)) {
             body.put("latitude", 23.7465);
@@ -125,17 +153,17 @@ public class ShopsController extends BaseListController {
         showForm(false);
 
         if (id != null) {
-            updateWithImage("/admin/cat-shops/" + id, body, img, url);
+            updateWithImage("/admin/shops/" + id, body, img, url);
         } else {
-            postWithImage("/admin/cat-shops", body, img, url);
+            postWithImage("/admin/shops", body, img, url);
         }
     }
 
-    @Override protected String getDeletePath() { return "/admin/cat-shops/"; }
+    @Override protected String getDeletePath() { return "/admin/shops/"; }
 
     @Override
     protected String getUploadCategory() {
-        return "cat-shops";
+        return "shops";
     }
 
     @Override
@@ -147,12 +175,20 @@ public class ShopsController extends BaseListController {
         String city = item.path("city").asText("").trim();
         String address = item.path("address").asText("").trim();
 
-        double distanceKm = 0;
+        double userLat = com.catconnect.util.Session.getUserLat();
+        double userLon = com.catconnect.util.Session.getUserLon();
+        double vetLat = item.path("latitude").asDouble(0);
+        double vetLon = item.path("longitude").asDouble(0);
 
-        if ("Dhanmondi".equalsIgnoreCase(city)) {
-            distanceKm = 0.5 + Math.random() * 3;
-        } else if ("Uttara".equalsIgnoreCase(city)) {
-            distanceKm = 0.5 + Math.random() * 3;
+        double distanceKm = 0;
+        if (userLat != 0 && userLon != 0 && vetLat != 0 && vetLon != 0) {
+            distanceKm = calculateDistance(userLat, userLon, vetLat, vetLon);
+        } else {
+            if ("Dhanmondi".equalsIgnoreCase(city)) {
+                distanceKm = 0.5 + Math.random() * 3;
+            } else if ("Uttara".equalsIgnoreCase(city)) {
+                distanceKm = 0.5 + Math.random() * 3;
+            }
         }
 
         if (!"All".equalsIgnoreCase(selected)) {
@@ -163,13 +199,13 @@ public class ShopsController extends BaseListController {
             if (!cityLower.contains(selectedLower) && !addressLower.contains(selectedLower)) {
                 VBox hiddenBox = new VBox();
                 hiddenBox.setVisible(false);
-                hiddenBox.setManaged(false);
+                hiddenBox.setManaged(false); // Tells TilePane to collapse the space!
                 return hiddenBox;
             }
         }
 
         long id = item.path("id").asLong();
-        String title = item.path("name").asText("Cat Shop");
+        String title = item.path("name").asText("Shop");
 
         String detail =
                 "⭐ " + item.path("rating").asText("4.5")
@@ -183,7 +219,7 @@ public class ShopsController extends BaseListController {
                 id,
                 title,
                 detail,
-                "/cat-shops/" + id + "/react",
+                "/vets/" + id + "/react",
                 () -> beginEdit(item)
         );
 
@@ -201,8 +237,8 @@ public class ShopsController extends BaseListController {
                     Alert.AlertType.INFORMATION,
                     item.path("phone").asText("No phone available")
             );
-            alert.setTitle("Shop Contact");
-            alert.setHeaderText(item.path("name").asText("Cat Shop"));
+            alert.setTitle("Vet Contact");
+            alert.setHeaderText(item.path("name").asText("Vet"));
             alert.showAndWait();
         });
 
@@ -241,7 +277,6 @@ public class ShopsController extends BaseListController {
             com.catconnect.util.UiHelper.showError("Could not open map.");
         }
     }
-
     private void openWebsite(String url) {
         try {
             if (url == null || url.isBlank()) {
@@ -256,10 +291,9 @@ public class ShopsController extends BaseListController {
             java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
 
         } catch (Exception e) {
-            com.catconnect.util.UiHelper.showError("Could not open website.");
+                com.catconnect.util.UiHelper.showError("Could not open website.");
         }
     }
-
     private void beginEdit(JsonNode item) {
         editingId = item.path("id").asLong();
         existingImageUrl = imageUrlFrom(item);
@@ -270,6 +304,7 @@ public class ShopsController extends BaseListController {
         hoursField.setText(item.path("openHours").asText(""));
         cityField.setText(item.path("city").asText(""));
         websiteField.setText(item.path("mapLink").asText(""));
+        ratingField.setText(item.path("rating").asText(""));
         imageUrlField.setText(existingImageUrl);
 
         addForm.setVisible(true);
@@ -287,9 +322,20 @@ public class ShopsController extends BaseListController {
             hoursField.clear();
             cityField.clear();
             websiteField.clear();
+            ratingField.clear();
             clearSelectedImage(photoPreview, photoLabel, imageUrlField);
             editingId = null;
             existingImageUrl = null;
         }
+    }
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371; // Earth radius in km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 }

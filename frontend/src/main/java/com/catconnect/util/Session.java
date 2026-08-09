@@ -39,4 +39,22 @@ public final class Session {
     public static boolean isLoggedIn() {
         return token != null;
     }
+
+    private static String selectedLocation = "All";
+    private static double userLat = 23.8103;
+    private static double userLon = 90.4125;
+
+    public static String getSelectedLocation() {
+        return selectedLocation;
+    }
+
+    public static void setSelectedLocation(String loc) {
+        selectedLocation = loc;
+    }
+
+    public static double getUserLat() { return userLat; }
+    public static void setUserLat(double lat) { userLat = lat; }
+
+    public static double getUserLon() { return userLon; }
+    public static void setUserLon(double lon) { userLon = lon; }
 }

@@ -290,6 +290,12 @@ public class ChatController {
                     chatStatusLabel.setText("Connected");
                     setStatusOnline();
                     inputField.setDisable(false);
+                    if (!chatListView.getItems().isEmpty()) {
+                        // Pause for 100ms to allow all chat bubbles to calculate their height, then scroll
+                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(100));
+                        pause.setOnFinished(ev -> chatListView.scrollTo(chatListView.getItems().size() - 1));
+                        pause.play();
+                    }
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> {
@@ -346,7 +352,7 @@ public class ChatController {
                     ApiClient.get().postJson("/chat/messages", Map.of("content", imgMessage, "roomId", currentRoomId));
                     Platform.runLater(() -> {
                         String myName = Session.getCurrentUser() != null ? Session.getCurrentUser().getDisplayName() : "Me";
-                        chatListView.getItems().add(new ChatMessage(myName, imgMessage, true, LocalDateTime.now().format(TIME_FMT)));
+                        chatListView.getItems().add(new ChatMessage(null, myName, imgMessage, true, LocalDateTime.now().format(TIME_FMT)));
                         chatListView.scrollTo(chatListView.getItems().size() - 1);
                     });
                 }
@@ -400,7 +406,7 @@ public class ChatController {
                     ApiClient.get().postJson("/chat/messages", Map.of("content", text, "roomId", currentRoomId));
                     Platform.runLater(() -> {
                         String myName = Session.getCurrentUser() != null ? Session.getCurrentUser().getDisplayName() : "Me";
-                        chatListView.getItems().add(new ChatMessage(myName, text, true, LocalDateTime.now().format(TIME_FMT)));
+                        chatListView.getItems().add(new ChatMessage(null, myName, text, true, LocalDateTime.now().format(TIME_FMT)));
                         chatListView.scrollTo(chatListView.getItems().size() - 1);
                     });
                 }
@@ -421,12 +427,27 @@ public class ChatController {
         if (!msgRoomId.isEmpty() && !msgRoomId.equals(currentRoomId)) {
             return;
         }
+        
+        Long msgId = msg.path("id").isMissingNode() ? null : msg.path("id").asLong();
+        if (msgId != null) {
+            for (ChatMessage m : chatListView.getItems()) {
+                if (m.id != null && m.id.equals(msgId)) {
+                    String newReaction = msg.path("reaction").asText("");
+                    m.reaction = newReaction.isEmpty() ? null : newReaction;
+                    Platform.runLater(() -> chatListView.refresh());
+                    return;
+                }
+            }
+        }
+        
         appendChatLine(msg, true);
     }
 
     private void appendChatLine(JsonNode msg, boolean scroll) {
+        Long id = msg.path("id").isMissingNode() ? null : msg.path("id").asLong();
         String senderName = msg.path("senderName").asText("User");
         String content = msg.path("content").asText("");
+        String reaction = msg.path("reaction").asText("");
         String myName = (Session.getCurrentUser() != null) ? Session.getCurrentUser().getDisplayName() : "Me";
         boolean mine = senderName.equals(myName);
         
@@ -442,7 +463,9 @@ public class ChatController {
             }
         }
 
-        ChatMessage message = new ChatMessage(mine ? "Me" : senderName, content, mine, time);
+        ChatMessage message = new ChatMessage(id, mine ? "Me" : senderName, content, mine, time);
+        message.reaction = reaction.isEmpty() ? null : reaction;
+        
         Platform.runLater(() -> {
             chatListView.getItems().add(message);
             if (scroll) {
@@ -470,13 +493,15 @@ public class ChatController {
 
     /** Simple immutable model for a single chat bubble. */
     private static class ChatMessage {
+        final Long id;
         final String sender;
         final String content;
         final boolean mine;
         final String time;
         String reaction; // Visual only
 
-        ChatMessage(String sender, String content, boolean mine, String time) {
+        ChatMessage(Long id, String sender, String content, boolean mine, String time) {
+            this.id = id;
             this.sender = sender;
             this.content = content;
             this.mine = mine;
@@ -575,6 +600,15 @@ public class ChatController {
                 btn.setOnAction(e -> {
                     item.reaction = emoji;
                     getListView().refresh();
+                    if (item.id != null) {
+                        new Thread(() -> {
+                            try {
+                                ApiClient.get().postJson("/chat/messages/" + item.id + "/react", Map.of("reaction", emoji));
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }).start();
+                    }
                 });
                 reactionMenu.getChildren().add(btn);
             }

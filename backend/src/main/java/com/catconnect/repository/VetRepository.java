@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface VetRepository extends JpaRepository<Vet, Long> {
     List<Vet> findByEmergencyTrue();
+    List<Vet> findByCityContainingIgnoreCase(String city);
+    List<Vet> findByEmergencyTrueAndCityContainingIgnoreCase(String city);
 }

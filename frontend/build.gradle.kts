@@ -12,6 +12,14 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<ProcessResources> {
+    filteringCharset = "UTF-8"
+}
+
 repositories {
     mavenCentral()
 }
@@ -29,7 +37,7 @@ dependencies {
 
 javafx {
     version = javafxVersion
-    modules("javafx.controls", "javafx.fxml","javafx.web")
+    modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
 application {
@@ -37,5 +45,5 @@ application {
 }
 
 tasks.named<JavaExec>("run") {
-    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED", "-Dfile.encoding=UTF-8")
 }

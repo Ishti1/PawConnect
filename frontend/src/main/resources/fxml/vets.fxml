@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
 
 <?import javafx.scene.layout.TilePane?>
 
@@ -32,14 +33,7 @@
                     styleClass="primary-button"/>
         </HBox>
     </VBox>
-    <VBox styleClass="form-card" spacing="10">
-        <Label text="Find vets near selected area" styleClass="section-label"/>
 
-        <HBox spacing="10">
-            <ComboBox fx:id="locationBox" promptText="Select Location"/>
-            <Button text="Find Nearby" onAction="#onFindNearby" styleClass="primary-button"/>
-        </HBox>
-    </VBox>
     <VBox fx:id="addForm" styleClass="form-card" spacing="10" visible="false" managed="false">
         <Label text="Vet listing" styleClass="section-label"/>
         <Label text="Name (required)" styleClass="form-label"/><TextField fx:id="nameField"/>
@@ -49,6 +43,8 @@
         <Label text="City" styleClass="form-label"/><TextField fx:id="cityField"/>
         <Label text="Website link" styleClass="form-label"/>
         <TextField fx:id="websiteField" promptText="https://example.com"/>
+        <Label text="Rating (0.0 to 5.0)" styleClass="form-label"/>
+        <TextField fx:id="ratingField" promptText="e.g. 4.8"/>
         <CheckBox fx:id="emergencyBox" text="24/7 Emergency vet"/>
         <Label text="Photo (optional)" styleClass="form-label"/>
         <HBox spacing="10"><Button text="Choose photo..." onAction="#onChooseImage" styleClass="secondary-button"/>

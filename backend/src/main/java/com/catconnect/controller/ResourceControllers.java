@@ -35,12 +35,18 @@ public class ResourceControllers {
     private final CatalogContentService catalogContentService;
 
     @GetMapping("/api/vets")
-    public List<Vet> vets() {
+    public List<Vet> vets(@org.springframework.web.bind.annotation.RequestParam(required = false) String location) {
+        if (location != null && !location.trim().isEmpty() && !"All".equalsIgnoreCase(location)) {
+            return vetRepository.findByCityContainingIgnoreCase(location.trim());
+        }
         return vetRepository.findAll();
     }
 
     @GetMapping("/api/vets/emergency")
-    public List<Vet> emergencyVets() {
+    public List<Vet> emergencyVets(@org.springframework.web.bind.annotation.RequestParam(required = false) String location) {
+        if (location != null && !location.trim().isEmpty() && !"All".equalsIgnoreCase(location)) {
+            return vetRepository.findByEmergencyTrueAndCityContainingIgnoreCase(location.trim());
+        }
         return vetRepository.findByEmergencyTrue();
     }
 

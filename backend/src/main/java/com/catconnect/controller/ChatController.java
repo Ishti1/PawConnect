@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -35,5 +36,11 @@ public class ChatController {
         Long userId = (Long) auth.getPrincipal();
         String roomId = request.getRoomId() != null ? request.getRoomId() : ChatService.GENERAL_ROOM;
         return chatService.send(userId, request.getContent(), roomId);
+    }
+    
+    @PostMapping("/messages/{id}/react")
+    public ChatMessageDto reactToMessage(@PathVariable Long id, @RequestBody Map<String, String> payload, Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        return chatService.reactToMessage(id, payload.get("reaction"), userId);
     }
 }

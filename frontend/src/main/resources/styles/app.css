@@ -9,8 +9,9 @@
 }
 
 .sidebar .label.title {
+    -fx-font-family: "Fredoka", sans-serif;
     -fx-text-fill: white;
-    -fx-font-size: 26px;
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
 }
 
@@ -95,23 +96,23 @@
 }
 
 .paw-logo {
-    -fx-font-size: 88px;
+    -fx-font-size: 64px;
 }
 .paw-logo-small {
-    -fx-font-size: 36px;
+    -fx-font-size: 32px;
 }
 
 .login-brand {
-    -fx-font-size: 56px;
+    -fx-font-size: 48px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
 }
 
 .login-tagline {
-    -fx-font-size: 36px;
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
-    -fx-max-width: 650;
+    -fx-max-width: 550;
     -fx-text-alignment: center;
 }
 

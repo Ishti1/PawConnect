@@ -96,6 +96,32 @@ public class ChatService {
         return dto;
     }
 
+    public ChatMessageDto reactToMessage(Long messageId, String reaction, Long userId) {
+        ChatMessage msg = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        
+        msg.setReaction(reaction);
+        ChatMessage savedMsg = chatMessageRepository.save(msg);
+        ChatMessageDto dto = ChatMessageDto.from(savedMsg);
+
+        // Broadcast the reaction update
+        try {
+            // We use the same message payload, but the frontend will see the reaction field
+            String payload = objectMapper.writeValueAsString(dto);
+            for (Map.Entry<String, WebSocketSession> entry : sessions.entrySet()) {
+                WebSocketSession s = entry.getValue();
+                String subscribedRoom = sessionRooms.getOrDefault(entry.getKey(), GENERAL_ROOM);
+                if (s.isOpen() && subscribedRoom.equals(savedMsg.getRoomId())) {
+                    s.sendMessage(new TextMessage(payload));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return dto;
+    }
+
     public List<UserDto> getUniqueChatPartners(Long userId) {
         Set<Long> partnerIds = new LinkedHashSet<>();
         for (String roomId : chatMessageRepository.findDmRoomIdsForUser(userId)) {

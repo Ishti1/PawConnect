@@ -57,8 +57,10 @@ public class MainController {
     private Parent homeContent;
     private ChatController chatScreenController;
 
+
     @FXML
     public void initialize() {
+        instance = this;
         if (Session.getCurrentUser() != null) {
             userLabel.setText("Hi, " + Session.getCurrentUser().getDisplayName());
         }
@@ -156,7 +158,8 @@ public class MainController {
 
     @FXML private void showEmergency() {
         setActive(btnEmergency);
-        showReadOnly("vets-emergency", "Emergency Vets (24/7)", "/vets/emergency", this::renderVets);
+        showCachedScreen("vets-emergency", "/fxml/vets.fxml", false, false,
+                c -> ((VetsController) c).setEmergencyOnly(true));
     }
 
     @FXML private void showFood() {
@@ -166,7 +169,7 @@ public class MainController {
 
     @FXML private void showShops() {
         setActive(btnShops);
-        showReadOnly("shops", "Nearby Cat Shops", "/shops", this::renderShops);
+        showCachedScreen("shops", "/fxml/shops.fxml", false, false);
     }
 
     @FXML private void showDonations() {
@@ -182,6 +185,23 @@ public class MainController {
     @FXML private void showChat() {
         setActive(btnChat);
         showCachedScreen("chat", "/fxml/chat.fxml", true, true);
+    }
+
+    public void navigateTo(String screen) {
+        javafx.application.Platform.runLater(() -> {
+            switch (screen) {
+                case "vets": showVets(); break;
+                case "adoption": showAdoption(); break;
+                case "lost-found": showLostFound(); break;
+                case "shops": showShops(); break;
+                case "chat": showChat(); break;
+                case "moments": showMoments(); break;
+                case "donations": showDonations(); break;
+                case "shelters": showShelters(); break;
+                case "memes": showMemes(); break;
+                default: showHome(); break;
+            }
+        });
     }
 
     @FXML
@@ -245,6 +265,9 @@ public class MainController {
             if (isChat && controllerCache.get(key) instanceof ChatController chat) {
                 chatScreenController = chat;
             }
+            if (controllerCache.get(key) instanceof BaseListController listCtrl) {
+                listCtrl.refreshData();
+            }
             if (controllerSetup != null && controllerCache.containsKey(key)) {
                 controllerSetup.accept(controllerCache.get(key));
             }
@@ -258,6 +281,9 @@ public class MainController {
             contentBox.getChildren().setAll(root);
         }
 
+        if (contentScroll != null) {
+            contentScroll.setPadding(new javafx.geometry.Insets(30, 40, 30, 40));
+        }
         currentScreenKey = key;
         if (scrollTop && !returningToSame) {
             scrollToTop();
@@ -395,6 +421,10 @@ public class MainController {
         }
         // Swap the main center view out for your home layout
         contentBox.getChildren().setAll(homeContent);
+        javafx.scene.layout.VBox.setVgrow(homeContent, javafx.scene.layout.Priority.ALWAYS);
+        if (contentScroll != null) {
+            contentScroll.setPadding(new javafx.geometry.Insets(0));
+        }
         currentScreenKey = "home";
     }
     private void setActive(Button active) {

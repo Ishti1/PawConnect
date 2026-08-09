@@ -75,6 +75,12 @@ public abstract class BaseListController {
         listLoadedOnce = false;
     }
 
+    /** Called by MainController when restoring a cached screen */
+    public void refreshData() {
+        resetListState();
+        loadData();
+    }
+
     private void loadData(boolean showLoading) {
         if (showLoading && statusLabel != null) {
             statusLabel.setText("Loading...");
@@ -121,9 +127,25 @@ public abstract class BaseListController {
             return;
         }
 
+        String selectedLocation = com.catconnect.util.Session.getSelectedLocation();
+        boolean hasLocationFilter = selectedLocation != null && !selectedLocation.equals("All") && !selectedLocation.isBlank();
+        String target = hasLocationFilter ? selectedLocation.toLowerCase() : "";
+
         for (JsonNode item : data) {
-            listBox.getChildren().add(wrapCard(item));
+            boolean matches = true;
+            if (hasLocationFilter) {
+                matches = item.toString().toLowerCase().contains(target);
+            }
+            if (matches) {
+                listBox.getChildren().add(wrapCard(item));
+            }
         }
+        
+        renderListHook(data);
+    }
+    
+    protected void renderListHook(JsonNode data) {
+        // Subclasses can override this
     }
 
     private VBox wrapCard(JsonNode item) {

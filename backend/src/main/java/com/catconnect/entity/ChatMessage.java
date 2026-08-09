@@ -33,6 +33,9 @@ public class ChatMessage {
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
+    @Column(name = "reaction")
+    private String reaction;
+
     @PrePersist
     void onCreate() {
         if (sentAt == null) {

@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
+<?import javafx.scene.image.*?>
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.catconnect.controller.MainController"
@@ -17,10 +17,17 @@
                 <Insets top="20" right="12" bottom="20" left="12"/>
             </padding>
 
-            <Label fx:id="appTitle" text="CatConnect" styleClass="title"/>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <ImageView fitHeight="32" fitWidth="32" preserveRatio="true">
+                    <image>
+                        <Image url="@../images/logo.png"/>
+                    </image>
+                </ImageView>
+                <Label fx:id="appTitle" text="PawConnect" styleClass="title" minWidth="-Infinity"/>
+            </HBox>
 
             <Label fx:id="userLabel"
-                   style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 11px;"
+                   style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 14px;"
                    wrapText="true"/>
 
             <Separator style="-fx-background-color: rgba(255,255,255,0.3);"/>
@@ -53,7 +60,7 @@
     </left>
 
     <center>
-        <ScrollPane fitToWidth="true"
+        <ScrollPane fitToWidth="true" fitToHeight="true"
                     styleClass="content-area"
                     fx:id="contentScroll">
             <VBox fx:id="contentBox" spacing="16"/>
