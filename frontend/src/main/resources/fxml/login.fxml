@@ -20,9 +20,9 @@
                 styleClass="login-pink-side">
         <top>
             <HBox alignment="TOP_LEFT" style="-fx-padding: 30;">
-                <ImageView fitWidth="140" fitHeight="140" preserveRatio="true">
+                <ImageView fitWidth="250" fitHeight="250" preserveRatio="true">
                     <image>
-                        <Image url="@../images/logo.png"/>
+                        <Image url="@../images/pawconnect_logo.png"/>
                     </image>
                 </ImageView>
             </HBox>
