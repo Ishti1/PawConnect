@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 public class MomentRequest {
     private String caption;
-    @NotBlank
     private String imageUrl;
+    private String mediaType;
+    private Long sharedMomentId;
 }

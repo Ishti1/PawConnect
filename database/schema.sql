@@ -57,16 +57,6 @@ CREATE TABLE care_knowledge (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE food_recommendations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    brand VARCHAR(150) NOT NULL,
-    product_name VARCHAR(200) NOT NULL,
-    age_group VARCHAR(50) NOT NULL,
-    health_condition VARCHAR(100) DEFAULT 'General',
-    description TEXT,
-    rating DECIMAL(2, 1) DEFAULT 4.5
-);
-
 CREATE TABLE cat_memes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(200),
@@ -109,7 +99,21 @@ CREATE TABLE cat_moments (
     user_id BIGINT NOT NULL,
     caption VARCHAR(500),
     image_url VARCHAR(500) NOT NULL,
+    media_type VARCHAR(20) DEFAULT 'IMAGE',
+    likes INT DEFAULT 0,
+    shared_moment_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (shared_moment_id) REFERENCES cat_moments(id) ON DELETE SET NULL
+);
+
+CREATE TABLE moment_comments (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    moment_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    content VARCHAR(1000) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (moment_id) REFERENCES cat_moments(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

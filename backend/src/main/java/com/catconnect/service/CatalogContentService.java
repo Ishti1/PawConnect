@@ -15,7 +15,6 @@ public class CatalogContentService {
     private final CatShopRepository catShopRepository;
     private final ShelterRepository shelterRepository;
     private final CareKnowledgeRepository careKnowledgeRepository;
-    private final FoodRecommendationRepository foodRecommendationRepository;
     private final DonationCampaignRepository donationCampaignRepository;
     private final OwnershipService ownershipService;
 
@@ -75,26 +74,6 @@ public class CatalogContentService {
         shelterRepository.delete(s);
     }
 
-    @Transactional
-    public FoodRecommendation adminUpdateFood(Long id, FoodUpdateRequest req) {
-        FoodRecommendation f = foodRecommendationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Food item not found"));
-        if (req.getBrand() != null && !req.getBrand().isBlank()) f.setBrand(req.getBrand());
-        if (req.getProductName() != null && !req.getProductName().isBlank()) f.setProductName(req.getProductName());
-        if (req.getAgeGroup() != null && !req.getAgeGroup().isBlank()) f.setAgeGroup(req.getAgeGroup());
-        if (req.getHealthCondition() != null) f.setHealthCondition(req.getHealthCondition());
-        if (req.getDescription() != null) f.setDescription(req.getDescription());
-        if (req.getRating() != null) f.setRating(req.getRating());
-        if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) f.setImageUrl(req.getImageUrl());
-        return foodRecommendationRepository.save(f);
-    }
-
-    @Transactional
-    public void adminDeleteFood(Long id) {
-        FoodRecommendation f = foodRecommendationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Food item not found"));
-        foodRecommendationRepository.delete(f);
-    }
 
     @Transactional
     public Vet updateVet(Long id, Long userId, VetUpdateRequest req) {
@@ -177,28 +156,6 @@ public class CatalogContentService {
         careKnowledgeRepository.delete(k);
     }
 
-    @Transactional
-    public FoodRecommendation updateFood(Long id, Long userId, FoodUpdateRequest req) {
-        FoodRecommendation f = foodRecommendationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Food item not found"));
-        ownershipService.assertOwner(f.getUserId(), userId);
-        if (req.getBrand() != null && !req.getBrand().isBlank()) f.setBrand(req.getBrand());
-        if (req.getProductName() != null && !req.getProductName().isBlank()) f.setProductName(req.getProductName());
-        if (req.getAgeGroup() != null && !req.getAgeGroup().isBlank()) f.setAgeGroup(req.getAgeGroup());
-        if (req.getHealthCondition() != null) f.setHealthCondition(req.getHealthCondition());
-        if (req.getDescription() != null) f.setDescription(req.getDescription());
-        if (req.getRating() != null) f.setRating(req.getRating());
-        if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) f.setImageUrl(req.getImageUrl());
-        return foodRecommendationRepository.save(f);
-    }
-
-    @Transactional
-    public void deleteFood(Long id, Long userId) {
-        FoodRecommendation f = foodRecommendationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Food item not found"));
-        ownershipService.assertOwner(f.getUserId(), userId);
-        foodRecommendationRepository.delete(f);
-    }
 
     @Transactional
     public DonationCampaign updateCampaign(Long id, Long userId, CampaignUpdateRequest req) {

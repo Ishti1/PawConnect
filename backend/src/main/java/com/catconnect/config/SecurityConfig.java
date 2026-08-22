@@ -33,9 +33,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/files/**").permitAll()
                         .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/lost-found", "/api/adoptions",
-                                "/api/moments", "/api/memes", "/api/upload", "/api/donations/**/contribute",
-                                "/api/donations").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/memes/*/like", "/api/**/react").authenticated()
+                                "/api/moments", "/api/memes", "/api/upload", "/api/donations/{id}/contribute",
+                                "/api/donations", "/api/moments/{id}/comments", "/api/moments/{id}/share").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/memes/{id}/like", "/api/vets/{id}/react", "/api/shops/{id}/react", "/api/shelters/{id}/react", "/api/memes/{id}/react", "/api/adoptions/{id}/react", "/api/lost-found/{id}/react", "/api/moments/{id}/react", "/api/donations/{id}/react").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/lost-found/*", "/api/moments/*", "/api/memes/*",
                                 "/api/adoptions/*", "/api/donations/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/lost-found/*", "/api/moments/*",

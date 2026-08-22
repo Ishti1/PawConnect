@@ -20,7 +20,7 @@ public class HomeController {
         if (homeWebView != null) {
             webEngine = homeWebView.getEngine();
             webEngine.setJavaScriptEnabled(true);
-            webEngine.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 PawConnect/1.0");
+            webEngine.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             
             // Reliable alert-based bridge: JS calls alert("cmd:param") which Java intercepts silently
             webEngine.setOnAlert(event -> {
@@ -43,7 +43,67 @@ public class HomeController {
                             Session.setSelectedLocation(loc);
                             UiHelper.showInfo("Location saved to " + loc + "! Showing nearby services.");
                         });
-                    }
+                    } else if (data.startsWith("openRealMap:")) {
+                        String[] parts = data.substring(12).split(",", 3);
+                        double lat = Double.parseDouble(parts[0]);
+                        double lon = Double.parseDouble(parts[1]);
+                        String loc = java.net.URLDecoder.decode(parts[2], StandardCharsets.UTF_8);
+                        
+                        javafx.application.Platform.runLater(() -> {
+                            Session.setSelectedLocation(loc);
+                            UiHelper.showInfo("Location marked as: " + loc + "!\nOpening Real Google Maps in your browser.");
+                            try {
+                                java.awt.Desktop.getDesktop().browse(new java.net.URI("https://www.google.com/maps/search/veterinary+clinic+near+" + lat + "," + lon));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    } else if (data.equals("getExactLocation")) {
+                        new Thread(() -> {
+                        String bssids = "";
+                        try {
+                            // Fetch Wi-Fi BSSIDs for Google Geolocation API
+                            Process pWifi = Runtime.getRuntime().exec("netsh wlan show networks mode=bssid");
+                            String wifiOut = new String(pWifi.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                            java.util.List<String> macs = new java.util.ArrayList<>();
+                            for (String line : wifiOut.split("\n")) {
+                                if (line.trim().startsWith("BSSID")) {
+                                    String mac = line.substring(line.indexOf(":") + 1).trim();
+                                    macs.add(mac);
+                                }
+                            }
+                            bssids = String.join(",", macs);
+                        } catch (Exception e) {}
+                        
+                        final String finalBssids = bssids;
+
+                        try {
+                            // Run PowerShell to fetch the exact coordinates from Windows Location Service
+                            ProcessBuilder pb = new ProcessBuilder("powershell.exe", "-NoProfile", "-Command",
+                                "Add-Type -AssemblyName System.Device; $w = New-Object System.Device.Location.GeoCoordinateWatcher; $w.Start(); Start-Sleep -Seconds 2; Write-Output \"$($w.Position.Location.Latitude) $($w.Position.Location.Longitude)\"");
+                            Process p = pb.start();
+                            String output = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                            if (output.contains(" ")) {
+                                String[] parts = output.split(" ");
+                                double lat = Double.parseDouble(parts[0]);
+                                double lon = Double.parseDouble(parts[1]);
+                                if (!Double.isNaN(lat) && !Double.isNaN(lon)) {
+                                    javafx.application.Platform.runLater(() -> {
+                                        webEngine.executeScript("exactLocationCallback(" + lat + ", " + lon + ", '" + finalBssids + "')");
+                                    });
+                                    return;
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        
+                        // If PowerShell fails or location is disabled, fallback with BSSIDs
+                        javafx.application.Platform.runLater(() -> {
+                            webEngine.executeScript("exactLocationCallback(null, null, '" + finalBssids + "')");
+                        });
+                    }).start();
+                }
                 }
             });
             

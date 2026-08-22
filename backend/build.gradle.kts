@@ -39,6 +39,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation("com.cloudinary:cloudinary-http44:1.38.0")
 }
 
 tasks.withType<Test> {

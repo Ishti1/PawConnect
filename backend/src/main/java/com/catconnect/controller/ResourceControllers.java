@@ -23,7 +23,6 @@ public class ResourceControllers {
     private final VetRepository vetRepository;
     private final CatShopRepository catShopRepository;
     private final ShelterRepository shelterRepository;
-    private final FoodRecommendationRepository foodRecommendationRepository;
     private final CatMemeRepository catMemeRepository;
     private final AdoptionListingRepository adoptionListingRepository;
     private final LostFoundPostRepository lostFoundPostRepository;
@@ -82,22 +81,6 @@ public class ResourceControllers {
                 .orElseThrow(() -> new IllegalArgumentException("Shelter not found"));
         shelter.setLikes(LikeCounter.next(shelter.getLikes()));
         return shelterRepository.save(shelter);
-    }
-
-    @GetMapping("/api/food-recommendations")
-    public List<FoodRecommendation> food(@RequestParam(required = false) String ageGroup) {
-        if (ageGroup != null && !ageGroup.isBlank()) {
-            return foodRecommendationRepository.findByAgeGroup(ageGroup);
-        }
-        return foodRecommendationRepository.findAll();
-    }
-
-    @PostMapping("/api/food-recommendations/{id}/react")
-    public FoodRecommendation reactFood(@PathVariable Long id) {
-        FoodRecommendation food = foodRecommendationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Food item not found"));
-        food.setLikes(LikeCounter.next(food.getLikes()));
-        return foodRecommendationRepository.save(food);
     }
 
     @GetMapping("/api/memes")
@@ -227,11 +210,8 @@ public class ResourceControllers {
     }
 
     @GetMapping("/api/moments")
-    public List<CatMoment> moments(Authentication auth) {
-        if (auth != null) {
-            return catMomentRepository.findAllByOrderByCreatedAtDesc();
-        }
-        return catMomentRepository.findAllByOrderByCreatedAtDesc();
+    public List<MomentResponse> moments(Authentication auth) {
+        return userContentService.getAllMoments();
     }
 
     @PostMapping("/api/moments")
@@ -241,7 +221,26 @@ public class ResourceControllers {
                 .userId(userId)
                 .caption(request.getCaption())
                 .imageUrl(request.getImageUrl())
+                .mediaType(request.getMediaType())
+                .sharedMomentId(request.getSharedMomentId())
                 .build());
+    }
+
+    @PostMapping("/api/moments/{id}/comments")
+    public CatMomentComment addComment(@PathVariable Long id, @Valid @RequestBody CommentRequest req, Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        return userContentService.addComment(id, userId, req);
+    }
+
+    @GetMapping("/api/moments/{id}/comments")
+    public List<CommentResponse> getComments(@PathVariable Long id) {
+        return userContentService.getComments(id);
+    }
+
+    @PostMapping("/api/moments/{id}/share")
+    public CatMoment shareMoment(@PathVariable Long id, Authentication auth) {
+        Long userId = (Long) auth.getPrincipal();
+        return userContentService.shareMoment(id, userId);
     }
 
     @PostMapping("/api/moments/{id}/react")

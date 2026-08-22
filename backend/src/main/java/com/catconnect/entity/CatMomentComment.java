@@ -6,32 +6,26 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cat_moments")
+@Table(name = "moment_comments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CatMoment {
+public class CatMomentComment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "moment_id", nullable = false)
+    private Long momentId;
+
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    private String caption;
-
-    private String imageUrl;
-
-    @Column(name = "media_type")
-    private String mediaType;
-
-    private Integer likes;
-
-    @Column(name = "shared_moment_id")
-    private Long sharedMomentId;
+    @Column(nullable = false)
+    private String content;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -40,12 +34,6 @@ public class CatMoment {
     void onCreate() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
-        }
-        if (likes == null) {
-            likes = 0;
-        }
-        if (mediaType == null) {
-            mediaType = "IMAGE";
         }
     }
 }

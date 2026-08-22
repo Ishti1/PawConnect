@@ -30,7 +30,6 @@ Base URL: `http://localhost:8080/api`
 | GET | `/shops` | Nearby cat shops |
 | GET | `/shelters` | Shelter directory |
 | GET | `/knowledge` | Care articles |
-| GET | `/food-recommendations` | Food suggestions |
 | GET | `/memes` | Cat memes feed |
 | GET | `/adoptions` | Adoption listings |
 | GET | `/lost-found` | Active lost & found posts |

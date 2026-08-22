@@ -22,7 +22,6 @@ public class AdminCatalogController {
     private final VetRepository vetRepository;
     private final CatShopRepository catShopRepository;
     private final ShelterRepository shelterRepository;
-    private final FoodRecommendationRepository foodRecommendationRepository;
     private final CatalogContentService catalogContentService;
 
     private Long requireAdmin(Authentication auth) {
@@ -142,43 +141,6 @@ public class AdminCatalogController {
         requireAdmin(auth);
         catalogContentService.adminDeleteShelter(id);
         return Map.of("message", "Shelter removed");
-    }
-
-    // ── Food recommendations ──────────────────────────────────────
-
-    @GetMapping("/food-recommendations")
-    public List<FoodRecommendation> food(Authentication auth) {
-        requireAdmin(auth);
-        return foodRecommendationRepository.findAll();
-    }
-
-    @PostMapping("/food-recommendations")
-    public FoodRecommendation createFood(@Valid @RequestBody FoodRequest request, Authentication auth) {
-        Long userId = requireAdmin(auth);
-        return foodRecommendationRepository.save(FoodRecommendation.builder()
-                .userId(userId)
-                .brand(request.getBrand())
-                .productName(request.getProductName())
-                .ageGroup(request.getAgeGroup())
-                .healthCondition(request.getHealthCondition())
-                .description(request.getDescription())
-                .rating(request.getRating())
-                .imageUrl(request.getImageUrl())
-                .build());
-    }
-
-    @PutMapping("/food-recommendations/{id}")
-    public FoodRecommendation updateFood(@PathVariable Long id, @RequestBody FoodUpdateRequest request,
-                                         Authentication auth) {
-        requireAdmin(auth);
-        return catalogContentService.adminUpdateFood(id, request);
-    }
-
-    @DeleteMapping("/food-recommendations/{id}")
-    public Map<String, String> deleteFood(@PathVariable Long id, Authentication auth) {
-        requireAdmin(auth);
-        catalogContentService.adminDeleteFood(id);
-        return Map.of("message", "Food item removed");
     }
 }
 

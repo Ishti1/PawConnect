@@ -3,6 +3,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 
 <StackPane xmlns="http://javafx.com/javafx/21"
            xmlns:fx="http://javafx.com/fxml/1"
@@ -10,17 +12,19 @@
            styleClass="splash-root"
            stylesheets="@../styles/app.css">
 
+    <!-- Centered Content -->
     <VBox alignment="CENTER" spacing="20">
-
-        <Label text="🐾"
-               styleClass="splash-logo"/>
+        <ImageView fitHeight="280" fitWidth="280" preserveRatio="true">
+            <image>
+                <Image url="@../images/pawconnect_logo.png"/>
+            </image>
+        </ImageView>
 
         <Label text="PaWConnect"
                styleClass="splash-title"/>
 
         <Label text="Connect • Care • Adopt"
                styleClass="splash-subtitle"/>
-
     </VBox>
 
 </StackPane>

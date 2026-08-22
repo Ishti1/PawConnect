@@ -56,4 +56,23 @@ public class AuthService {
                 .isAdmin(Boolean.TRUE.equals(user.getIsAdmin()))
                 .build();
     }
+    public AuthResponse updateAccount(com.catconnect.dto.UpdateAccountRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+        
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        if (request.getNewDisplayName() != null && !request.getNewDisplayName().isBlank()) {
+            user.setDisplayName(request.getNewDisplayName().trim());
+        }
+
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        }
+
+        user = userRepository.save(user);
+        return buildResponse(user);
+    }
 }

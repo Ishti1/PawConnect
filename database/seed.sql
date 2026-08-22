@@ -27,13 +27,6 @@ INSERT INTO care_knowledge (title, category, content, author) VALUES
 ('Dental Care at Home', 'Grooming', 'Brush teeth 2-3 times weekly with cat toothpaste. Dental treats help but do not replace brushing.', 'CatConnect Team'),
 ('Senior Cat Nutrition', 'Nutrition', 'Cats 11+ need easily digestible protein, joint supplements, and more frequent vet checkups every 6 months.', 'Dr. Amira Hassan');
 
-INSERT INTO food_recommendations (brand, product_name, age_group, health_condition, description, rating) VALUES
-('Royal Canin', 'Kitten Dry Food', 'Kitten (0-12 months)', 'General', 'Balanced growth formula with antioxidants.', 4.8),
-('Hill''s Science Diet', 'Adult Indoor', 'Adult (1-7 years)', 'Indoor', 'Fiber blend reduces hairballs for indoor cats.', 4.6),
-('Purina Pro Plan', 'Sensitive Skin & Stomach', 'Adult', 'Sensitive', 'Salmon-based limited ingredient for allergies.', 4.5),
-('Blue Buffalo', 'Mature 7+', 'Senior (7+ years)', 'General', 'Reduced calories with glucosamine for joints.', 4.7),
-('Wellness CORE', 'Grain-Free Indoor', 'Adult', 'Weight Management', 'High protein, low carb for overweight indoor cats.', 4.4);
-
 INSERT INTO cat_memes (title, image_url, likes) VALUES
 ('Monday Mood', 'https://placekitten.com/400/300', 1240),
 ('If I Fits I Sits', 'https://placekitten.com/401/301', 892),
@@ -51,9 +44,13 @@ INSERT INTO lost_found_posts (user_id, post_type, cat_description, last_seen_loc
 (1, 'LOST', 'Orange tabby, white paws, green collar "Max"', 'Zamalek, 15th St near Nile', '+20-100-111-2222', 'https://placekitten.com/300/250', 'ACTIVE'),
 (NULL, 'FOUND', 'Grey longhair, very friendly, no collar', 'Maadi, Road 9', '+20-100-333-4444', 'https://placekitten.com/301/251', 'ACTIVE');
 
-INSERT INTO cat_moments (user_id, caption, image_url) VALUES
-(1, 'Sunbeam nap champion', 'https://placekitten.com/150/150'),
-(1, 'First day in the new cat tree!', 'https://placekitten.com/151/151');
+INSERT INTO cat_moments (user_id, caption, image_url, media_type, likes) VALUES
+(1, 'Sunbeam nap champion', 'https://placekitten.com/150/150', 'IMAGE', 24),
+(1, 'First day in the new cat tree!', 'https://placekitten.com/151/151', 'IMAGE', 56);
+
+INSERT INTO moment_comments (moment_id, user_id, content) VALUES
+(1, 1, 'So cute!'),
+(2, 1, 'Looks like fun!');
 
 INSERT INTO donation_campaigns (title, description, shelter_id, goal_amount, raised_amount, image_url, status) VALUES
 ('Winter Shelter Blanket Drive', 'Help us buy 200 warm blankets for rescued cats.', 1, 15000.00, 8750.00, 'https://placekitten.com/350/200', 'ACTIVE'),

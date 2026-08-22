@@ -19,8 +19,8 @@
                 HBox.hgrow="ALWAYS"
                 styleClass="login-pink-side">
         <top>
-            <HBox alignment="TOP_LEFT" style="-fx-padding: 30;">
-                <ImageView fitWidth="250" fitHeight="250" preserveRatio="true">
+            <HBox alignment="TOP_LEFT" style="-fx-padding: 20;">
+                <ImageView fitHeight="120" preserveRatio="true">
                     <image>
                         <Image url="@../images/pawconnect_logo.png"/>
                     </image>

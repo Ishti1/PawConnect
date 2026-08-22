@@ -21,6 +21,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,6 +54,7 @@ public class ChatController {
     private Long lastMessagedUserId = null;
     private String lastMessagedUserName = "User";
     private final Map<String, Long> nameToIdMap = new HashMap<>();
+    private LocalDate lastMessageDate = null;
 
     @FXML
     public void initialize() {
@@ -263,6 +265,7 @@ public class ChatController {
     private void loadRoom(String roomId, String title) {
         this.currentRoomId = roomId;
         Platform.runLater(() -> {
+            lastMessageDate = null;
             if (screenTitle != null) screenTitle.setText(title);
             chatStatusLabel.setText("Connecting...");
             setStatusOffline();
@@ -352,8 +355,9 @@ public class ChatController {
                     ApiClient.get().postJson("/chat/messages", Map.of("content", imgMessage, "roomId", currentRoomId));
                     Platform.runLater(() -> {
                         String myName = Session.getCurrentUser() != null ? Session.getCurrentUser().getDisplayName() : "Me";
-                        chatListView.getItems().add(new ChatMessage(null, myName, imgMessage, true, LocalDateTime.now().format(TIME_FMT)));
-                        chatListView.scrollTo(chatListView.getItems().size() - 1);
+                        LocalDateTime now = LocalDateTime.now();
+                        ChatMessage msg = new ChatMessage(null, myName, imgMessage, true, now.format(TIME_FMT));
+                        addMessageToList(msg, now, true);
                     });
                 }
             } catch (Exception ex) {
@@ -406,8 +410,9 @@ public class ChatController {
                     ApiClient.get().postJson("/chat/messages", Map.of("content", text, "roomId", currentRoomId));
                     Platform.runLater(() -> {
                         String myName = Session.getCurrentUser() != null ? Session.getCurrentUser().getDisplayName() : "Me";
-                        chatListView.getItems().add(new ChatMessage(null, myName, text, true, LocalDateTime.now().format(TIME_FMT)));
-                        chatListView.scrollTo(chatListView.getItems().size() - 1);
+                        LocalDateTime now = LocalDateTime.now();
+                        ChatMessage msg = new ChatMessage(null, myName, text, true, now.format(TIME_FMT));
+                        addMessageToList(msg, now, true);
                     });
                 }
                 Platform.runLater(() -> inputField.clear());
@@ -452,26 +457,48 @@ public class ChatController {
         boolean mine = senderName.equals(myName);
         
         String timeStr = msg.path("sentAt").asText("");
-        String time;
+        LocalDateTime dateTime = null;
         if (timeStr.isEmpty()) {
-            time = LocalDateTime.now().format(TIME_FMT);
+            dateTime = LocalDateTime.now();
         } else {
             try {
-                time = LocalDateTime.parse(timeStr).format(TIME_FMT);
+                dateTime = LocalDateTime.parse(timeStr);
             } catch (Exception e) {
-                time = LocalDateTime.now().format(TIME_FMT);
+                dateTime = LocalDateTime.now();
             }
         }
+        String time = dateTime.format(TIME_FMT);
 
         ChatMessage message = new ChatMessage(id, mine ? "Me" : senderName, content, mine, time);
         message.reaction = reaction.isEmpty() ? null : reaction;
         
+        LocalDateTime finalDateTime = dateTime;
         Platform.runLater(() -> {
-            chatListView.getItems().add(message);
-            if (scroll) {
-                chatListView.scrollTo(chatListView.getItems().size() - 1);
-            }
+            addMessageToList(message, finalDateTime, scroll);
         });
+    }
+
+    private void addMessageToList(ChatMessage message, LocalDateTime dateTime, boolean scroll) {
+        if (dateTime != null) {
+            LocalDate msgDate = dateTime.toLocalDate();
+            if (lastMessageDate == null || !lastMessageDate.equals(msgDate)) {
+                LocalDate today = LocalDate.now();
+                String dateText;
+                if (msgDate.equals(today)) {
+                    dateText = "Today";
+                } else if (msgDate.equals(today.minusDays(1))) {
+                    dateText = "Yesterday";
+                } else {
+                    dateText = msgDate.format(DateTimeFormatter.ofPattern("MMM dd"));
+                }
+                chatListView.getItems().add(new ChatMessage(dateText));
+                lastMessageDate = msgDate;
+            }
+        }
+        chatListView.getItems().add(message);
+        if (scroll) {
+            chatListView.scrollTo(chatListView.getItems().size() - 1);
+        }
     }
 
     private void updateTabStyles(Button activeBtn, Button inactiveBtn) {
@@ -499,6 +526,9 @@ public class ChatController {
         final boolean mine;
         final String time;
         String reaction; // Visual only
+        
+        final boolean isDateHeader;
+        final String dateText;
 
         ChatMessage(Long id, String sender, String content, boolean mine, String time) {
             this.id = id;
@@ -506,6 +536,18 @@ public class ChatController {
             this.content = content;
             this.mine = mine;
             this.time = time;
+            this.isDateHeader = false;
+            this.dateText = null;
+        }
+
+        ChatMessage(String dateText) {
+            this.id = null;
+            this.sender = null;
+            this.content = null;
+            this.mine = false;
+            this.time = null;
+            this.isDateHeader = true;
+            this.dateText = dateText;
         }
     }
 
@@ -523,6 +565,20 @@ public class ChatController {
             super.updateItem(item, empty);
             if (empty || item == null) {
                 setGraphic(null);
+                setText(null);
+                return;
+            }
+
+            if (item.isDateHeader) {
+                Label dateLabel = new Label(item.dateText);
+                dateLabel.getStyleClass().add("chat-date-header");
+                dateLabel.setStyle("-fx-background-color: #f1f2f6; -fx-padding: 4 12 4 12; -fx-background-radius: 12; -fx-text-fill: #747d8c; -fx-font-size: 11px; -fx-font-weight: bold;");
+                
+                HBox headerBox = new HBox(dateLabel);
+                headerBox.setAlignment(Pos.CENTER);
+                headerBox.setPadding(new javafx.geometry.Insets(10, 0, 10, 0));
+                
+                setGraphic(headerBox);
                 setText(null);
                 return;
             }

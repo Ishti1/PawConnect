@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Priority;
 import javafx.fxml.FXMLLoader;
 
 import java.util.HashMap;
@@ -36,21 +37,21 @@ public class MainController {
     @FXML private javafx.scene.control.ScrollPane contentScroll;
     @FXML private VBox contentBox;
     @FXML private VBox sidebar;
-    @FXML private Label appTitle;
+    @FXML private javafx.scene.control.ScrollPane sidebarScroll;
     @FXML private Button btnLogout;
+    @FXML private Button btnRefresh;
     @FXML private Button btnHome;
     @FXML private Button btnLostFound;
     @FXML private Button btnVets;
     @FXML private Button btnEmergency;
-    @FXML private Button btnFood;
     @FXML private Button btnShops;
     @FXML private Button btnMoments;
     @FXML private Button btnDonations;
     @FXML private Button btnShelters;
     @FXML private Button btnAdoption;
     @FXML private Button btnMemes;
+    @FXML private Button btnManageAccount;
     @FXML private Button btnChat;
-
     private final Map<String, Parent> screenCache = new HashMap<>();
     private final Map<String, Object> controllerCache = new HashMap<>();
     private String currentScreenKey;
@@ -62,7 +63,7 @@ public class MainController {
     public void initialize() {
         instance = this;
         if (Session.getCurrentUser() != null) {
-            userLabel.setText("Hi, " + Session.getCurrentUser().getDisplayName());
+            updateUserLabel();
         }
         
         // Sidebar hover logic
@@ -78,8 +79,6 @@ public class MainController {
     
     private void expandSidebar() {
         sidebar.setPrefWidth(220);
-        appTitle.setVisible(true);
-        appTitle.setManaged(true);
         userLabel.setVisible(true);
         userLabel.setManaged(true);
         
@@ -87,12 +86,12 @@ public class MainController {
             if (b != null) setButtonText(b, true);
         }
         if (btnLogout != null) setButtonText(btnLogout, true);
+        if (btnRefresh != null) setButtonText(btnRefresh, true);
+        if (sidebarScroll != null) sidebarScroll.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
     }
 
     private void minimizeSidebar() {
         sidebar.setPrefWidth(80);
-        appTitle.setVisible(false);
-        appTitle.setManaged(false);
         userLabel.setVisible(false);
         userLabel.setManaged(false);
         
@@ -100,6 +99,8 @@ public class MainController {
             if (b != null) setButtonText(b, false);
         }
         if (btnLogout != null) setButtonText(btnLogout, false);
+        if (btnRefresh != null) setButtonText(btnRefresh, false);
+        if (sidebarScroll != null) sidebarScroll.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
     }
 
     private void setButtonText(Button btn, boolean expanded) {
@@ -145,6 +146,11 @@ public class MainController {
         showCachedScreen("memes", "/fxml/memes.fxml", false, false);
     }
 
+    @FXML private void showManageAccount() {
+        setActive(btnManageAccount);
+        showCachedScreen("manage-account", "/fxml/manage_account.fxml", false, true);
+    }
+
     @FXML private void showAdoption() {
         setActive(btnAdoption);
         showCachedScreen("adoption", "/fxml/adoption.fxml", false, false);
@@ -160,11 +166,6 @@ public class MainController {
         setActive(btnEmergency);
         showCachedScreen("vets-emergency", "/fxml/vets.fxml", false, false,
                 c -> ((VetsController) c).setEmergencyOnly(true));
-    }
-
-    @FXML private void showFood() {
-        setActive(btnFood);
-        showReadOnly("food", "Cat Food Recommendations", "/food-recommendations", this::renderFood);
     }
 
     @FXML private void showShops() {
@@ -202,6 +203,32 @@ public class MainController {
                 default: showHome(); break;
             }
         });
+    }
+
+    public void updateUserLabel() {
+        if (Session.getCurrentUser() != null && userLabel != null) {
+            userLabel.setText("Hi, " + Session.getCurrentUser().getDisplayName());
+        }
+    }
+
+    @FXML
+    private void onRefresh() {
+        screenCache.clear();
+        controllerCache.clear();
+        homeContent = null;
+        
+        Button activeBtn = null;
+        for (Button b : navButtons()) {
+            if (b != null && b.getStyleClass().contains("active")) {
+                activeBtn = b;
+                break;
+            }
+        }
+        if (activeBtn != null) {
+            activeBtn.fire();
+        } else {
+            showHome();
+        }
     }
 
     @FXML
@@ -279,10 +306,21 @@ public class MainController {
 
         if (!contentBox.getChildren().contains(root)) {
             contentBox.getChildren().setAll(root);
+            VBox.setVgrow(root, Priority.ALWAYS);
         }
 
         if (contentScroll != null) {
-            contentScroll.setPadding(new javafx.geometry.Insets(30, 40, 30, 40));
+            if ("moments".equals(key)) {
+                contentScroll.setPadding(new javafx.geometry.Insets(0, 0, 0, 0));
+                contentScroll.setStyle("-fx-background-color: #ff6b6b;");
+                contentBox.setStyle("-fx-background-color: #ff6b6b;");
+                contentBox.setPadding(new javafx.geometry.Insets(0, 0, 0, 0));
+            } else {
+                contentScroll.setPadding(new javafx.geometry.Insets(30, 40, 30, 40));
+                contentScroll.setStyle("-fx-background-color: transparent;");
+                contentBox.setStyle("-fx-background-color: transparent;");
+                contentBox.setPadding(new javafx.geometry.Insets(0, 0, 0, 0));
+            }
         }
         currentScreenKey = key;
         if (scrollTop && !returningToSame) {
@@ -370,17 +408,6 @@ public class MainController {
         }
     }
 
-    private void renderFood(JsonNode data) {
-        VBox box = (VBox) contentBox.getChildren().getFirst();
-        for (JsonNode f : data) {
-            box.getChildren().add(UiHelper.card(
-                    f.path("brand").asText() + " - " + f.path("productName").asText(),
-                    "Age: " + f.path("ageGroup").asText() + " | " + f.path("healthCondition").asText()
-                            + "\n" + f.path("description").asText() + " | ★ " + f.path("rating").asText()
-            ));
-        }
-    }
-
     private VBox addressCard(String title, String mapLink, String detail) {
         VBox card = UiHelper.card(title, detail);
         if (mapLink != null && !mapLink.isBlank()) {
@@ -440,8 +467,8 @@ public class MainController {
 
     private Button[] navButtons() {
         return new Button[]{
-                btnHome, btnLostFound, btnVets, btnEmergency, btnFood,
-                btnShops, btnMoments, btnDonations, btnShelters, btnAdoption, btnMemes, btnChat
+                btnHome, btnLostFound, btnVets, btnEmergency,
+                btnShops, btnMoments, btnDonations, btnShelters, btnAdoption, btnMemes, btnManageAccount, btnChat
         };
     }
 

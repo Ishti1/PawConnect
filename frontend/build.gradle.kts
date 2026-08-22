@@ -30,6 +30,7 @@ dependencies {
     implementation("org.openjfx:javafx-web:$javafxVersion")
     implementation("org.openjfx:javafx-controls:$javafxVersion")
     implementation("org.openjfx:javafx-fxml:$javafxVersion")
+    implementation("org.openjfx:javafx-swing:$javafxVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
     implementation("org.java-websocket:Java-WebSocket:1.5.6")
@@ -37,7 +38,7 @@ dependencies {
 
 javafx {
     version = javafxVersion
-    modules("javafx.controls", "javafx.fxml", "javafx.web")
+    modules("javafx.controls", "javafx.fxml", "javafx.web", "javafx.swing")
 }
 
 application {

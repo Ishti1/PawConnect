@@ -31,4 +31,8 @@ public class AuthController {
         Long userId = (Long) authentication.getPrincipal();
         return authService.getProfile(userId);
     }
+    @PutMapping("/manage")
+    public AuthResponse manage(@Valid @RequestBody com.catconnect.dto.UpdateAccountRequest request) {
+        return authService.updateAccount(request);
+    }
 }

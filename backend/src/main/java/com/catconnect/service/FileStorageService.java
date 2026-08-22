@@ -1,52 +1,32 @@
 package com.catconnect.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
+import java.util.Map;
 
 @Service
 public class FileStorageService {
 
-    private final Path rootPath;
+    private final Cloudinary cloudinary;
 
-    public FileStorageService(@Value("${app.storage.path}") String storagePath) throws IOException {
-        this.rootPath = Paths.get(storagePath).toAbsolutePath().normalize();
-        Files.createDirectories(rootPath);
+    public FileStorageService(Cloudinary cloudinary) {
+        this.cloudinary = cloudinary;
     }
 
     public String store(MultipartFile file, String category) throws IOException {
         String ext = getExtension(file.getOriginalFilename());
-        String filename = UUID.randomUUID() + ext;
-        Path categoryDir = rootPath.resolve(sanitize(category));
-        Files.createDirectories(categoryDir);
-        Path target = categoryDir.resolve(filename);
-        Files.copy(file.getInputStream(), target);
-        return "/api/files/" + sanitize(category) + "/" + filename;
-    }
-
-    public Path resolvePath(String category, String filename) throws IOException {
-        Path file = rootPath.resolve(sanitize(category)).resolve(filename).normalize();
-        if (!file.startsWith(rootPath)) {
-            throw new IOException("Invalid file path");
-        }
-        return file;
-    }
-
-    public Resource loadAsResource(String category, String filename) throws IOException {
-        Path file = resolvePath(category, filename);
-        Resource resource = new UrlResource(file.toUri());
-        if (!resource.exists() || !resource.isReadable()) {
-            throw new IOException("File not found");
-        }
-        return resource;
+        // Upload to Cloudinary with category as folder
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "folder", sanitize(category),
+                "resource_type", "auto"
+        ));
+        
+        // Return the secure URL provided by Cloudinary
+        return uploadResult.get("secure_url").toString();
     }
 
     private String sanitize(String input) {

@@ -32,7 +32,6 @@ CatConnect
 | Lost & Found | Report and search missing/found cats |
 | Nearby Vet | Vet clinics with ratings and contact |
 | Cat care knowledge | Articles and care tips |
-| Cat food recommendation | Food suggestions by age/health |
 | Nearby cat shop | Pet supply stores near you |
 | Your cat moments | Photo timeline of your cats |
 | Donation & support | Support shelters and causes |

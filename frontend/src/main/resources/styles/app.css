@@ -54,6 +54,19 @@
     -fx-padding: 24;
 }
 
+.content-area:has(.reels-list) {
+    -fx-padding: 0;
+}
+
+.content-area > .reels-list {
+    -fx-background-color: #fff5f7;
+    -fx-padding: 0;
+}
+.reels-list .list-cell {
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
 .content-area > .viewport {
     -fx-background-color: #f8f5f0;
 }
@@ -706,4 +719,27 @@
 }
 .list-view .virtual-flow .sheet {
     -fx-background-color: transparent;
+}
+
+.sidebar-scrollpane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+
+.sidebar-scrollpane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.4);
+    -fx-background-radius: 4;
+}
+
+.sidebar-scrollpane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.7);
+}
+
+.sidebar-scrollpane .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.sidebar-scrollpane .scroll-bar:vertical .increment-button,
+.sidebar-scrollpane .scroll-bar:vertical .decrement-button {
+    -fx-padding: 0;
 }

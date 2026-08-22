@@ -18,7 +18,6 @@ public class DataSeeder implements CommandLineRunner {
     private final CatShopRepository catShopRepository;
     private final ShelterRepository shelterRepository;
     private final CareKnowledgeRepository careKnowledgeRepository;
-    private final FoodRecommendationRepository foodRecommendationRepository;
     private final CatMemeRepository catMemeRepository;
     private final AdoptionListingRepository adoptionListingRepository;
     private final LostFoundPostRepository lostFoundPostRepository;
@@ -96,11 +95,6 @@ public class DataSeeder implements CommandLineRunner {
                 .author("Dr. Amira Hassan").userId(demo.getId())
                 .imageUrl("https://placekitten.com/326/200").build());
 
-        foodRecommendationRepository.save(FoodRecommendation.builder()
-                .brand("Royal Canin").productName("Kitten Dry Food").ageGroup("Kitten (0-12 months)")
-                .healthCondition("General").description("Balanced growth formula.").rating(new BigDecimal("4.8"))
-                .userId(demo.getId()).imageUrl("https://placekitten.com/327/200").build());
-
         catMemeRepository.save(CatMeme.builder()
                 .userId(demo.getId())
                 .title("Monday Mood").imageUrl("https://placekitten.com/400/300").likes(1240).build());
@@ -119,7 +113,8 @@ public class DataSeeder implements CommandLineRunner {
 
         catMomentRepository.save(CatMoment.builder()
                 .userId(demo.getId()).caption("Sunbeam nap champion")
-                .imageUrl("https://placekitten.com/150/150").build());
+                .imageUrl("https://placekitten.com/150/150")
+                .mediaType("IMAGE").likes(24).build());
 
         donationCampaignRepository.save(DonationCampaign.builder()
                 .title("Winter Shelter Blanket Drive")
