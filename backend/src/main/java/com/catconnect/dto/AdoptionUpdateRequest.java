@@ -10,5 +10,8 @@ public class AdoptionUpdateRequest {
     private String gender;
     private String description;
     private String imageUrl;
+    private String location;
+    private String address;
+    private String contactPhone;
 }
 

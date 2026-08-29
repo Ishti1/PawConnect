@@ -17,6 +17,7 @@ public class CatalogContentService {
     private final CareKnowledgeRepository careKnowledgeRepository;
     private final DonationCampaignRepository donationCampaignRepository;
     private final OwnershipService ownershipService;
+    private final com.catconnect.repository.UserRepository userRepository;
 
     // ── Admin versions (no ownership checks) ───────────────────────
 
@@ -172,7 +173,17 @@ public class CatalogContentService {
         if (req.getBankName() != null) c.setBankName(req.getBankName());
         if (req.getMobileBanking() != null) c.setMobileBanking(req.getMobileBanking());
         if (req.getPaymentInstructions() != null) c.setPaymentInstructions(req.getPaymentInstructions());
+        if (req.getContactPhone() != null) c.setContactPhone(req.getContactPhone());
         return donationCampaignRepository.save(c);
+    }
+
+    public java.util.List<DonationCampaign> getAllActiveCampaigns() {
+        java.util.List<DonationCampaign> campaigns = donationCampaignRepository.findByStatus("ACTIVE");
+        for (DonationCampaign c : campaigns) {
+            com.catconnect.entity.User user = userRepository.findById(c.getUserId()).orElse(null);
+            c.setSenderName(user != null ? user.getDisplayName() : "Anonymous");
+        }
+        return campaigns;
     }
 
     @Transactional

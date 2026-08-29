@@ -342,11 +342,14 @@ public class ChatController {
         new Thread(() -> {
             try {
                 String url = ApiClient.get().uploadImage(file, "chat");
-                String baseUrl = Session.getApiBaseUrl();
-                if (baseUrl.endsWith("/api")) {
-                    baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
+                String fullUrl = url;
+                if (!url.startsWith("http")) {
+                    String baseUrl = Session.getApiBaseUrl();
+                    if (baseUrl.endsWith("/api")) {
+                        baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
+                    }
+                    fullUrl = baseUrl + url;
                 }
-                String fullUrl = baseUrl + url;
                 String imgMessage = "[img]" + fullUrl + "[/img]";
 
                 if (chatClient.isConnected()) {

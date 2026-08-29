@@ -42,6 +42,16 @@ public class AdoptionListing {
     @Column(name = "shelter_id")
     private Long shelterId;
 
+    private String location;
+    
+    private String address;
+    
+    @Column(name = "contact_phone")
+    private String contactPhone;
+
+    @Transient
+    private String senderName;
+
     private String status;
 
     @Column(name = "created_at")

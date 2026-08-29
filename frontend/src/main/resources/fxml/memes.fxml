@@ -46,5 +46,5 @@
     </VBox>
 
     <Label fx:id="statusLabel" text="Loading memes..." styleClass="action-bar-hint"/>
-    <VBox fx:id="listBox" spacing="10"/>
+    <TilePane fx:id="listBox" hgap="16" vgap="16"/>
 </VBox>

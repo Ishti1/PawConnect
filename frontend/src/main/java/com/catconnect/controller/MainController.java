@@ -180,7 +180,7 @@ public class MainController {
 
     @FXML private void showShelters() {
         setActive(btnShelters);
-        showReadOnly("shelters", "Shelter Directory", "/shelters", this::renderShelters);
+        showCachedScreen("shelters", "/fxml/shelters.fxml", false, false);
     }
 
     @FXML private void showChat() {

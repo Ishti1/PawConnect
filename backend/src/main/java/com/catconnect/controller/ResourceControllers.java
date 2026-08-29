@@ -32,6 +32,13 @@ public class ResourceControllers {
     private final LostFoundService lostFoundService;
     private final UserContentService userContentService;
     private final CatalogContentService catalogContentService;
+    private final com.catconnect.repository.UserRepository userRepository;
+
+    private String getDisplayName(Long userId) {
+        return userRepository.findById(userId)
+                .map(com.catconnect.entity.User::getDisplayName)
+                .orElse("Anonymous");
+    }
 
     @GetMapping("/api/vets")
     public List<Vet> vets(@org.springframework.web.bind.annotation.RequestParam(required = false) String location) {
@@ -127,13 +134,13 @@ public class ResourceControllers {
 
     @GetMapping("/api/adoptions")
     public List<AdoptionListing> adoptions() {
-        return adoptionListingRepository.findByStatus("AVAILABLE");
+        return userContentService.getAllActiveAdoptions();
     }
 
     @PostMapping("/api/adoptions")
     public AdoptionListing createAdoption(@Valid @RequestBody AdoptionRequest request, Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return adoptionListingRepository.save(AdoptionListing.builder()
+        AdoptionListing listing = adoptionListingRepository.save(AdoptionListing.builder()
                 .userId(userId)
                 .catName(request.getCatName())
                 .breed(request.getBreed())
@@ -142,7 +149,12 @@ public class ResourceControllers {
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
                 .shelterId(request.getShelterId())
+                .location(request.getLocation())
+                .address(request.getAddress())
+                .contactPhone(request.getContactPhone())
                 .build());
+        listing.setSenderName(getDisplayName(userId));
+        return listing;
     }
 
     @PostMapping("/api/adoptions/{id}/react")
@@ -164,7 +176,9 @@ public class ResourceControllers {
     public AdoptionListing updateAdoption(@PathVariable Long id, @RequestBody AdoptionUpdateRequest request,
                                           Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return userContentService.updateAdoption(id, userId, request);
+        AdoptionListing listing = userContentService.updateAdoption(id, userId, request);
+        listing.setSenderName(getDisplayName(userId));
+        return listing;
     }
 
     @GetMapping("/api/lost-found")
@@ -176,7 +190,7 @@ public class ResourceControllers {
     @PostMapping("/api/lost-found")
     public LostFoundPost createLostFound(@Valid @RequestBody LostFoundRequest request, Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return lostFoundPostRepository.save(LostFoundPost.builder()
+        LostFoundPost post = lostFoundPostRepository.save(LostFoundPost.builder()
                 .userId(userId)
                 .postType(request.getPostType())
                 .catDescription(request.getCatDescription())
@@ -185,6 +199,8 @@ public class ResourceControllers {
                 .imageUrl(request.getImageUrl())
                 .mapLink(request.getMapLink())
                 .build());
+        post.setSenderName(getDisplayName(userId));
+        return post;
     }
 
     @PostMapping("/api/lost-found/{id}/react")
@@ -206,7 +222,9 @@ public class ResourceControllers {
     public LostFoundPost updateLostFound(@PathVariable Long id, @RequestBody LostFoundUpdateRequest request,
                                          Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return lostFoundService.update(id, userId, request);
+        LostFoundPost post = lostFoundService.update(id, userId, request);
+        post.setSenderName(getDisplayName(userId));
+        return post;
     }
 
     @GetMapping("/api/moments")
@@ -267,13 +285,13 @@ public class ResourceControllers {
 
     @GetMapping("/api/donations")
     public List<DonationCampaign> campaigns() {
-        return donationCampaignRepository.findByStatus("ACTIVE");
+        return catalogContentService.getAllActiveCampaigns();
     }
 
     @PostMapping("/api/donations")
     public DonationCampaign createCampaign(@Valid @RequestBody CampaignRequest request, Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return donationCampaignRepository.save(DonationCampaign.builder()
+        DonationCampaign c = donationCampaignRepository.save(DonationCampaign.builder()
                 .userId(userId)
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -285,13 +303,19 @@ public class ResourceControllers {
                 .bankName(request.getBankName())
                 .mobileBanking(request.getMobileBanking())
                 .paymentInstructions(request.getPaymentInstructions())
+                .contactPhone(request.getContactPhone())
                 .build());
+        c.setSenderName(getDisplayName(userId));
+        return c;
     }
 
     @PutMapping("/api/donations/{id}")
     public DonationCampaign updateCampaign(@PathVariable Long id, @RequestBody CampaignUpdateRequest request,
                                            Authentication auth) {
-        return catalogContentService.updateCampaign(id, (Long) auth.getPrincipal(), request);
+        Long userId = (Long) auth.getPrincipal();
+        DonationCampaign c = catalogContentService.updateCampaign(id, userId, request);
+        c.setSenderName(getDisplayName(userId));
+        return c;
     }
 
     @DeleteMapping("/api/donations/{id}")

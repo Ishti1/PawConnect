@@ -223,9 +223,6 @@ public class ShopsController extends BaseListController {
                 () -> beginEdit(item)
         );
 
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setFillWidth(true);
-
         Button mapButton = new Button("📍 Open Map");
         mapButton.getStyleClass().add("secondary-button");
         mapButton.setOnAction(e -> openMap(item));

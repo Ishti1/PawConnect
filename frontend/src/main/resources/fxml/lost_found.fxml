@@ -8,6 +8,11 @@
 <VBox spacing="14" styleClass="screen-root" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.catconnect.controller.LostFoundController">
     <padding><Insets bottom="16" left="2" right="2" top="4" /></padding>
 
+    <!-- Location Bar -->
+    <HBox alignment="CENTER_LEFT" style="-fx-background-color: #ffe3e3; -fx-padding: 8 16; -fx-background-radius: 20; -fx-border-color: #ff6b6b; -fx-border-radius: 20; -fx-border-width: 1;">
+        <Label fx:id="userLocationLabel" text="📍 Loading location..." style="-fx-text-fill: #ff6b6b; -fx-font-weight: bold; -fx-font-size: 14px; -fx-font-family: 'Segoe UI', sans-serif;"/>
+    </HBox>
+
     <!-- Title row -->
     <HBox alignment="CENTER_LEFT" spacing="16">
         <Label styleClass="screen-title" text="🔍 Lost &amp; Found" />
@@ -19,6 +24,9 @@
         <HBox alignment="CENTER_LEFT" spacing="12">
             <Button onAction="#onAdd" styleClass="primary-button" text="+ Add Post" />
             <Button onAction="#onRefresh" styleClass="secondary-button" text="Refresh" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label styleClass="form-label" text="Filter:" />
+            <ComboBox fx:id="filterBox" />
         </HBox>
     </VBox>
 

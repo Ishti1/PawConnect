@@ -81,7 +81,19 @@ public class UserContentService {
         if (req.getGender() != null) listing.setGender(req.getGender());
         if (req.getDescription() != null) listing.setDescription(req.getDescription());
         if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) listing.setImageUrl(req.getImageUrl());
+        if (req.getLocation() != null) listing.setLocation(req.getLocation());
+        if (req.getAddress() != null) listing.setAddress(req.getAddress());
+        if (req.getContactPhone() != null) listing.setContactPhone(req.getContactPhone());
         return adoptionListingRepository.save(listing);
+    }
+
+    public List<AdoptionListing> getAllActiveAdoptions() {
+        List<AdoptionListing> adoptions = adoptionListingRepository.findByStatus("AVAILABLE");
+        for (AdoptionListing ad : adoptions) {
+            com.catconnect.entity.User user = userRepository.findById(ad.getUserId()).orElse(null);
+            ad.setSenderName(user != null ? user.getDisplayName() : "Anonymous");
+        }
+        return adoptions;
     }
 
     public List<com.catconnect.dto.MomentResponse> getAllMoments() {

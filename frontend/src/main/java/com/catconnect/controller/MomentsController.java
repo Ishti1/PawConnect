@@ -392,6 +392,7 @@ public class MomentsController {
         private MediaPlayer mediaPlayer;
         private MediaView mediaView;
         private final Pane imagePane;
+        private final StackPane playPauseOverlay;
         private final Label captionLabel;
         private final Label usernameLabel;
         private final Label likesLabel;
@@ -429,6 +430,33 @@ public class MomentsController {
             noImageLabel.setAlignment(Pos.CENTER);
             StackPane.setAlignment(noImageLabel, Pos.CENTER);
             
+            // --- Play/Pause Overlay ---
+            playPauseOverlay = new StackPane();
+            playPauseOverlay.setStyle("-fx-background-color: rgba(0,0,0,0.4);");
+            Label playIcon = new Label("▶");
+            playIcon.setStyle("-fx-text-fill: white; -fx-font-size: 80px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 0);");
+            playPauseOverlay.getChildren().add(playIcon);
+            playPauseOverlay.setVisible(false);
+
+            mediaContainer.setOnMouseClicked(e -> {
+                if (mediaPlayer != null) {
+                    if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                        mediaPlayer.pause();
+                        playPauseOverlay.setVisible(true);
+                    } else {
+                        mediaPlayer.play();
+                        playPauseOverlay.setVisible(false);
+                    }
+                }
+            });
+
+            root.sceneProperty().addListener((obs, oldS, newS) -> {
+                if (newS == null && mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                    mediaPlayer.pause();
+                    playPauseOverlay.setVisible(true);
+                }
+            });
+            
             // --- Bottom-left overlay: username + caption ---
             VBox bottomLeft = new VBox(4);
             bottomLeft.setAlignment(Pos.BOTTOM_LEFT);
@@ -462,7 +490,7 @@ public class MomentsController {
             StackPane.setAlignment(bottomLeft, Pos.BOTTOM_LEFT);
             
             // Add elements to media container
-            mediaContainer.getChildren().addAll(imagePane, mediaView, noImageLabel, bottomLeft);
+            mediaContainer.getChildren().addAll(imagePane, mediaView, playPauseOverlay, noImageLabel, bottomLeft);
             
             // --- Right side actions: Like, Comment, Share, Delete ---
             VBox actionsColumn = new VBox(22);
@@ -562,6 +590,7 @@ public class MomentsController {
                     mediaView.setVisible(true);
                     mediaView.setManaged(true);
                     noImageLabel.setVisible(false);
+                    playPauseOverlay.setVisible(false);
                     
                     try {
                         Media media = new Media(resolvedUrl);
@@ -581,6 +610,7 @@ public class MomentsController {
                     imagePane.setVisible(true);
                     imagePane.setManaged(true);
                     noImageLabel.setVisible(false);
+                    playPauseOverlay.setVisible(false);
                     
                     // Load image securely using robust HTTP client to bypass CDNs blocking Java
                     loadImageSafely(resolvedUrl, imagePane);
@@ -591,6 +621,7 @@ public class MomentsController {
                     mediaView.setVisible(false);
                     mediaView.setManaged(false);
                     noImageLabel.setVisible(true);
+                    playPauseOverlay.setVisible(false);
                     mediaContainer.setStyle("-fx-background-color: linear-gradient(to bottom, #fff0f5, #ffe4e1);");
                 }
                 

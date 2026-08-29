@@ -13,4 +13,7 @@ public class AdoptionRequest {
     private String description;
     private String imageUrl;
     private Long shelterId;
+    private String location;
+    private String address;
+    private String contactPhone;
 }

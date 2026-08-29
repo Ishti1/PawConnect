@@ -23,6 +23,14 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.image.WritableImage;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.shape.Rectangle;
+import javafx.embed.swing.SwingFXUtils;
+import javax.imageio.ImageIO;
+import javafx.stage.Modality;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -37,6 +45,7 @@ public abstract class BaseListController {
 
     @FXML protected Label statusLabel;
     @FXML protected TilePane listBox;
+    @FXML protected Label userLocationLabel;
 
     /** API endpoint to GET items (e.g. "/lost-found") */
     protected abstract String getApiPath();
@@ -88,6 +97,12 @@ public abstract class BaseListController {
             statusLabel.setManaged(true);
         }
 
+        if (userLocationLabel != null) {
+            String selectedLoc = Session.getSelectedLocation();
+            String locDisplay = (selectedLoc != null && !selectedLoc.isBlank()) ? selectedLoc : "All";
+            Platform.runLater(() -> userLocationLabel.setText("\uD83D\uDCCD Location: " + locDisplay));
+        }
+
         new Thread(() -> {
             try {
                 JsonNode data = ApiClient.get().getList(getApiPath());
@@ -113,6 +128,12 @@ public abstract class BaseListController {
             statusLabel.setManaged(false);
         }
         if (listBox == null) return;
+        
+        if (listBox.getProperties().get("dynamicSetup") == null) {
+            listBox.setAlignment(Pos.TOP_CENTER); // Align to the center
+            listBox.getProperties().put("dynamicSetup", true);
+        }
+        
         listBox.getChildren().clear();
 
         if (!data.isArray() || data.isEmpty()) {
@@ -353,14 +374,102 @@ public abstract class BaseListController {
         }
         File file = chooser.showOpenDialog(stage);
         if (file != null) {
-            selectedImageFile = file;
-            if (preview != null) {
-                preview.setImage(new Image(file.toURI().toString(), 220, 220, true, true));
-            }
-            if (photoLabel != null) {
-                photoLabel.setText("Selected: " + file.getName());
-            }
+            openCropModal(file, preview, photoLabel, stage);
         }
+    }
+
+    private double cropDragStartX, cropDragStartY;
+
+    private void openCropModal(File file, ImageView preview, Label photoLabel, Stage owner) {
+        Stage cropStage = new Stage();
+        cropStage.initModality(Modality.APPLICATION_MODAL);
+        cropStage.initOwner(owner);
+        cropStage.setTitle("Crop Image");
+
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: #222222; -fx-padding: 30;");
+
+        Label instructions = new Label("Drag to position image");
+        instructions.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+        StackPane cropContainer = new StackPane();
+        cropContainer.setStyle("-fx-border-color: rgba(255,255,255,0.5); -fx-border-width: 2;");
+
+        // Use a generic 4:3 crop ratio since these are usually landscape cards
+        double cropWidth = 400;
+        double cropHeight = 300;
+        cropContainer.setMinSize(cropWidth, cropHeight);
+        cropContainer.setMaxSize(cropWidth, cropHeight);
+
+        Image img = new Image(file.toURI().toString());
+        ImageView cropImageView = new ImageView(img);
+        cropImageView.setPreserveRatio(true);
+
+        Pane pane = new Pane(cropImageView);
+        pane.setMinSize(cropWidth, cropHeight);
+        pane.setMaxSize(cropWidth, cropHeight);
+        
+        Rectangle clip = new Rectangle(cropWidth, cropHeight);
+        pane.setClip(clip);
+
+        // Fit image inside pane nicely initially to cover it
+        if (img.getWidth() / img.getHeight() > cropWidth / cropHeight) {
+            cropImageView.setFitHeight(cropHeight);
+        } else {
+            cropImageView.setFitWidth(cropWidth);
+        }
+
+        cropImageView.setOnMousePressed(e -> {
+            cropDragStartX = e.getSceneX();
+            cropDragStartY = e.getSceneY();
+        });
+        
+        cropImageView.setOnMouseDragged(e -> {
+            double dx = e.getSceneX() - cropDragStartX;
+            double dy = e.getSceneY() - cropDragStartY;
+            cropImageView.setTranslateX(cropImageView.getTranslateX() + dx);
+            cropImageView.setTranslateY(cropImageView.getTranslateY() + dy);
+            cropDragStartX = e.getSceneX();
+            cropDragStartY = e.getSceneY();
+        });
+
+        cropContainer.getChildren().add(pane);
+
+        HBox buttons = new HBox(16);
+        buttons.setAlignment(Pos.CENTER);
+        
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.setStyle("-fx-background-color: #555555; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 8 20; -fx-cursor: hand;");
+        cancelBtn.setOnAction(e -> cropStage.close());
+        
+        Button doneBtn = new Button("Done");
+        doneBtn.setStyle("-fx-background-color: #ff6b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 8 20; -fx-cursor: hand;");
+        doneBtn.setOnAction(e -> {
+            WritableImage snapshot = pane.snapshot(new SnapshotParameters(), null);
+            try {
+                File tempFile = File.createTempFile("paw_listcrop_", ".png");
+                ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", tempFile);
+                
+                selectedImageFile = tempFile;
+                if (preview != null) {
+                    preview.setImage(new Image(tempFile.toURI().toString(), 220, 220, true, true));
+                }
+                if (photoLabel != null) {
+                    photoLabel.setText("Selected: Cropped Image");
+                }
+                cropStage.close();
+            } catch (Exception ex) {
+                UiHelper.showError("Failed to save cropped image.");
+            }
+        });
+        
+        buttons.getChildren().addAll(cancelBtn, doneBtn);
+        root.getChildren().addAll(instructions, cropContainer, buttons);
+        
+        Scene scene = new Scene(root);
+        cropStage.setScene(scene);
+        cropStage.showAndWait();
     }
 
     protected void clearSelectedImage(ImageView preview, Label photoLabel, TextField optionalUrlField) {
@@ -440,7 +549,13 @@ public abstract class BaseListController {
 
         VBox card = new VBox(12);
         card.getStyleClass().add("card");
-        card.setMaxWidth(Double.MAX_VALUE);
+        if (listBox != null) {
+            card.prefWidthProperty().bind(listBox.prefTileWidthProperty());
+            card.maxWidthProperty().bind(listBox.prefTileWidthProperty());
+        } else {
+            card.setPrefWidth(480);
+            card.setMaxWidth(480);
+        }
         card.setFillWidth(true);
 
         String img = imageUrlFrom(item);
@@ -448,12 +563,18 @@ public abstract class BaseListController {
         if (img != null && !img.isBlank()) {
             ImageView imageView = createCardImageView(img);
             imageView.setFitHeight(220);
-            imageView.setFitWidth(480);
+            if (listBox != null) {
+                imageView.fitWidthProperty().bind(listBox.prefTileWidthProperty().subtract(36));
+            } else {
+                imageView.setFitWidth(444);
+            }
             imageView.setPreserveRatio(false);
+            
+            // Hide if image fails to load to prevent huge white space
+            imageView.managedProperty().bind(imageView.imageProperty().isNotNull());
+            imageView.visibleProperty().bind(imageView.imageProperty().isNotNull());
 
             card.getChildren().add(imageView);
-            card.setPrefWidth(480);
-            card.setMaxWidth(480);
         }
 
         VBox infoBox = new VBox(10);

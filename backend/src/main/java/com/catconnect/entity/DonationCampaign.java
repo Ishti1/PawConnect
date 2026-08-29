@@ -52,6 +52,12 @@ public class DonationCampaign {
     @Column(name = "payment_instructions", columnDefinition = "TEXT")
     private String paymentInstructions;
 
+    @Column(name = "contact_phone")
+    private String contactPhone;
+
+    @Transient
+    private String senderName;
+
     private String status;
 
     @Column(name = "user_id")
