@@ -48,6 +48,11 @@ public class LostFoundPost {
 
     private Integer likes;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "lostfound_likes", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> likedBy = new java.util.HashSet<>();
+
     private String status;
 
     @Column(name = "created_at")

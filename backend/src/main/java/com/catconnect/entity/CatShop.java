@@ -43,6 +43,11 @@ public class CatShop {
 
     private Integer likes;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "shop_likes", joinColumns = @JoinColumn(name = "shop_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> likedBy = new java.util.HashSet<>();
+
     @PrePersist
     void onCreate() {
         if (likes == null) {

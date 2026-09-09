@@ -14,7 +14,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     List<ChatMessage> findTop100ByRoomIdInOrderBySentAtDesc(Collection<String> roomIds);
 
     @Query("""
-            SELECT DISTINCT m.roomId FROM ChatMessage m
+            SELECT m.roomId, MAX(m.sentAt) as latest FROM ChatMessage m
             WHERE m.roomId LIKE 'dm_%'
             AND (
                 m.senderId = :userId
@@ -22,6 +22,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
                 OR m.roomId LIKE CONCAT('dm_%_', :userId)
                 OR m.roomId = CONCAT('dm_', :userId)
             )
+            GROUP BY m.roomId
+            ORDER BY latest DESC
             """)
-    List<String> findDmRoomIdsForUser(@Param("userId") Long userId);
+    List<Object[]> findDmRoomIdsOrderedByLatestMessage(@Param("userId") Long userId);
 }

@@ -30,6 +30,11 @@ public class CatMoment {
 
     private Integer likes;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "moment_likes", joinColumns = @JoinColumn(name = "moment_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> likedBy = new java.util.HashSet<>();
+
     @Column(name = "shared_moment_id")
     private Long sharedMomentId;
 

@@ -31,7 +31,7 @@ public class VetsController extends BaseListController {
     @FXML private CheckBox emergencyBox;
     @FXML private ImageView photoPreview;
     @FXML private Label photoLabel;
-    @FXML private ComboBox<String> locationBox;
+    @FXML private Label userLocationLabel;
     @FXML private Button addVetButton;
     @FXML private VBox adminActionBar;
     @FXML private TextField searchField;
@@ -73,9 +73,13 @@ public class VetsController extends BaseListController {
         }
 
 
-        if (locationBox != null) {
-            locationBox.getItems().setAll("All", "Dhanmondi", "Uttara");
-            locationBox.setValue("All");
+        if (userLocationLabel != null) {
+            String selected = com.catconnect.util.Session.getSelectedLocation();
+            if (selected != null && !selected.trim().isEmpty() && !"All".equalsIgnoreCase(selected)) {
+                userLocationLabel.setText("📍 Location: " + selected);
+            } else {
+                userLocationLabel.setText("📍 Showing all locations");
+            }
         }
         if (adminActionBar != null) {
             adminActionBar.setVisible(isAdmin());
@@ -110,6 +114,18 @@ public class VetsController extends BaseListController {
     private void onFindNearby() {
         resetListState();
         loadData();
+    }
+
+    @Override
+    protected void onRefreshData() {
+        if (userLocationLabel != null) {
+            String selected = com.catconnect.util.Session.getSelectedLocation();
+            if (selected != null && !selected.trim().isEmpty() && !"All".equalsIgnoreCase(selected)) {
+                userLocationLabel.setText("📍 Location: " + selected);
+            } else {
+                userLocationLabel.setText("📍 Showing all locations");
+            }
+        }
     }
     private boolean isAdmin() {
         return com.catconnect.util.Session.getCurrentUser() != null
@@ -186,9 +202,11 @@ public class VetsController extends BaseListController {
 
     @Override
     protected VBox buildCard(JsonNode item) {
-        String selected = locationBox == null || locationBox.getValue() == null
-                ? "All"
-                : locationBox.getValue().trim();
+        String selected = com.catconnect.util.Session.getSelectedLocation();
+        if (selected == null || selected.trim().isEmpty()) {
+            selected = "All";
+        }
+        selected = selected.trim();
 
         String city = item.path("city").asText("").trim();
         String address = item.path("address").asText("").trim();

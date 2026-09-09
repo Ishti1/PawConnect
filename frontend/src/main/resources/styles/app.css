@@ -742,4 +742,6 @@
 .sidebar-scrollpane .scroll-bar:vertical .increment-button,
 .sidebar-scrollpane .scroll-bar:vertical .decrement-button {
     -fx-padding: 0;
-}
+}. c h a t - g l o w   {   - f x - t e x t - f i l l :   # f 1 c 4 0 f ;   - f x - f o n t - w e i g h t :   b o l d ;   - f x - e f f e c t :   d r o p s h a d o w ( t h r e e - p a s s - b o x ,   # f 1 c 4 0 f ,   1 0 ,   0 ,   0 ,   0 ) ;   }  
+ . c o n t a c t - u n r e a d - g l o w   {   - f x - t e x t - f i l l :   # f 1 c 4 0 f ;   - f x - f o n t - w e i g h t :   b o l d ;   - f x - e f f e c t :   d r o p s h a d o w ( t h r e e - p a s s - b o x ,   # f 1 c 4 0 f ,   1 0 ,   0 ,   0 ,   0 ) ;   }  
+ 

@@ -5,6 +5,7 @@ import com.catconnect.dto.UserDto;
 import com.catconnect.entity.ChatMessage;
 import com.catconnect.repository.ChatMessageRepository;
 import com.catconnect.repository.UserRepository;
+import com.catconnect.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
 
     public static final String GENERAL_ROOM = "general";
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
@@ -80,6 +82,12 @@ public class ChatService {
         ChatMessage savedMsg = chatMessageRepository.save(msg);
         ChatMessageDto dto = ChatMessageDto.from(savedMsg);
 
+        Long partnerId = partnerFromDmRoom(normalizedRoom, senderId);
+        if (partnerId != null) {
+            String senderName = userRepository.findById(senderId).map(u -> u.getDisplayName()).orElse("User");
+            notificationService.createNotification(partnerId, "1 new message from " + senderName, "CHAT", senderId);
+        }
+
         try {
             String payload = objectMapper.writeValueAsString(dto);
             for (Map.Entry<String, WebSocketSession> entry : sessions.entrySet()) {
@@ -124,15 +132,26 @@ public class ChatService {
 
     public List<UserDto> getUniqueChatPartners(Long userId) {
         Set<Long> partnerIds = new LinkedHashSet<>();
-        for (String roomId : chatMessageRepository.findDmRoomIdsForUser(userId)) {
+        List<Object[]> rooms = chatMessageRepository.findDmRoomIdsOrderedByLatestMessage(userId);
+        for (Object[] row : rooms) {
+            String roomId = (String) row[0];
             Long partner = partnerFromDmRoom(roomId, userId);
             if (partner != null) {
                 partnerIds.add(partner);
             }
         }
-        return userRepository.findAllById(partnerIds).stream()
-                .map(u -> new UserDto(u.getId(), null, u.getDisplayName(), null, null, null))
-                .toList();
+        
+        List<com.catconnect.entity.User> users = userRepository.findAllById(partnerIds);
+        Map<Long, com.catconnect.entity.User> userMap = users.stream().collect(java.util.stream.Collectors.toMap(com.catconnect.entity.User::getId, u -> u));
+        
+        List<UserDto> dtos = new java.util.ArrayList<>();
+        for (Long pId : partnerIds) {
+            com.catconnect.entity.User u = userMap.get(pId);
+            if (u != null) {
+                dtos.add(new UserDto(u.getId(), null, u.getDisplayName(), null, null, null));
+            }
+        }
+        return dtos;
     }
 
     private static List<String> historyRoomIds(String roomId) {

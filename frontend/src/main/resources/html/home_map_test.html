@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -26,7 +26,7 @@
       overflow-x: hidden;
     }
 
-    /* ── Location Dialog ── */
+    /* â”€â”€ Location Dialog â”€â”€ */
     .location-dialog-overlay {
       position: fixed;
       top: 0;
@@ -99,7 +99,7 @@
       margin-bottom: 0;
     }
 
-    /* ── Hero Section ── */
+    /* â”€â”€ Hero Section â”€â”€ */
     .hero {
       display: flex;
       min-height: 480px;
@@ -160,7 +160,7 @@
       box-shadow: 0 6px 20px rgba(255, 107, 107, 0.45);
     }
 
-    /* ── Right side: fp-card (previous style) ── */
+    /* â”€â”€ Right side: fp-card (previous style) â”€â”€ */
     .hero-right {
       flex: 1;
       background: #f7f7f7;
@@ -301,38 +301,14 @@
       padding: 8px 16px;
       font-size: 14px;
       color: #333;
-      cursor: pointer !important;
-      -webkit-cursor: pointer;
+      cursor: pointer;
       transition: all 0.2s;
-      position: relative;
-      z-index: 10;
-      user-select: none;
     }
 
     .pill-btn:hover {
       border-color: #ff6b6b;
       color: #ff6b6b;
       background: #fff5f5;
-      cursor: pointer !important;
-    }
-
-    .location-confirmed {
-      display: none;
-      margin-top: 16px;
-      padding: 12px 18px;
-      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-      border: 1px solid #81c784;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      color: #2e7d32;
-      text-align: center;
-      animation: fadeSlideIn 0.3s ease-out;
-    }
-
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     #map {
@@ -344,14 +320,9 @@
       margin-top: 16px;
       border: 1px solid #ddd;
       background: #e8e8e8;
-      pointer-events: none;
     }
 
-    #map[src] {
-      pointer-events: auto;
-    }
-
-    /* ── Services Section ── */
+    /* â”€â”€ Services Section â”€â”€ */
     .services {
       padding: 60px 50px;
       background: #fff;
@@ -462,7 +433,7 @@
       box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
     }
 
-    /* ── Footer ── */
+    /* â”€â”€ Footer â”€â”€ */
     .footer {
       padding: 30px 50px;
       background: #faf9f7;
@@ -479,7 +450,7 @@
 
   <div class="location-dialog-overlay" id="locationDialog">
     <div class="location-dialog">
-      <div class="location-dialog-close" onclick="closeLocationDialog()">✕</div>
+      <div class="location-dialog-close" onclick="closeLocationDialog()">âœ•</div>
       <div class="location-dialog-header">PawConnect <span
           style="font-weight:normal; font-size:14px; color:#e8eaed">wants to</span></div>
       <div class="location-dialog-title">
@@ -507,7 +478,7 @@
       <button class="cta-btn" onclick="document.querySelector('.services').scrollIntoView({behavior:'smooth'})">Explore
         Our Services</button>
       <p class="desc">Since 2026, PawConnect has been connecting pet lovers across Dhaka with trusted veterinarians,
-        adoption centers, and a vibrant community of cat enthusiasts. Your furry friend deserves the best — and we're
+        adoption centers, and a vibrant community of cat enthusiasts. Your furry friend deserves the best â€” and we're
         here to help.</p>
       <img
         src="https://static.boredpanda.com/blog/wp-content/uploads/2025/10/funny-cute-cats-pictures-68df6d540e8d0__700.jpg"
@@ -520,9 +491,9 @@
         <div class="input-container">
           <div class="input-label">Your Address</div>
           <div class="input-wrapper">
-            <input type="text" id="address-input" placeholder="Street, City, Area" value="${LOCATION}"
+            <input type="text" id="address-input" placeholder="Street, City, Area" value=""
               onkeypress="if(event.key === 'Enter') submitLocation();"
-              oninput="if(this.value.trim() === '') { document.getElementById('map').style.display = 'none'; document.getElementById('locationConfirmed').style.display = 'none'; }" />
+              oninput="if(this.value.trim() === '') { document.getElementById('popularSection').style.display = 'block'; document.getElementById('map').style.display = 'none'; }" />
             <button class="locate-btn" onclick="doLocateMe()">
               <svg focusable="false" aria-hidden="true" viewBox="0 0 24 24">
                 <path
@@ -540,7 +511,6 @@
           </button>
         </div>
         <img id="map" alt="Selected location map" />
-        <div class="location-confirmed" id="locationConfirmed">✅ Location set to: <span id="confirmedName"></span></div>
         <div class="popular-section" id="popularSection">
           <h3>Popular locations</h3>
           <div class="pill-container">
@@ -566,10 +536,10 @@
       <div class="service-card" onclick="navigateToScreen('vets')">
         <img src="vet_home.jpg" alt="Vet" />
         <div class="card-body">
-          <h4>🏥 Nearby Vets</h4>
+          <h4>ðŸ¥ Nearby Vets</h4>
           <p>Find trusted veterinarians near your location. From routine checkups to 24/7 emergency care, we've got
             every paw covered.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('vets');">Find Vets →</button>
+          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('vets');">Find Vets â†’</button>
         </div>
       </div>
 
@@ -578,11 +548,11 @@
           src="https://assets3.thrillist.com/v1/image/3055628/792x416/scale;webp=auto;jpeg_quality=60;progressive.jpg"
           alt="Adopt" />
         <div class="card-body">
-          <h4>🐱 Adoption Center</h4>
+          <h4>ðŸ± Adoption Center</h4>
           <p>Give a loving home to a cat in need. Browse adoptable cats in your area and find your perfect furry
             soulmate today.</p>
           <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('adoption');">Browse Cats
-            →</button>
+            â†’</button>
         </div>
       </div>
 
@@ -590,11 +560,11 @@
         <img src="https://www.shutterstock.com/image-vector/lost-missing-pet-animal-poster-260nw-2372295219.jpg"
           alt="Lost" />
         <div class="card-body">
-          <h4>🔍 Lost &amp; Found</h4>
+          <h4>ðŸ” Lost &amp; Found</h4>
           <p>Lost your cat or found a stray? Post alerts visible to your entire neighborhood and reunite pets with their
             families.</p>
           <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('lost-found');">Report Now
-            →</button>
+            â†’</button>
         </div>
       </div>
 
@@ -603,20 +573,20 @@
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnwAIXq6NmWvpRoR2UI8hgXZTQeSxl8U2kmpFG1sDBtht4x4wkm5ODZj_m&s=10"
           alt="Shop" />
         <div class="card-body">
-          <h4>🛒 Cat Shops</h4>
+          <h4>ðŸ›’ Cat Shops</h4>
           <p>Discover the best pet stores near you for food, toys, litter, and all the essentials your cat needs to
             thrive.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('shops');">Shop Now →</button>
+          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('shops');">Shop Now â†’</button>
         </div>
       </div>
 
       <div class="service-card" onclick="navigateToScreen('chat')">
         <img src="https://thumbs.dreamstime.com/b/group-chat-icon-online-messaging-353377229.jpg" alt="Chat" />
         <div class="card-body">
-          <h4>💬 Community Chat</h4>
+          <h4>ðŸ’¬ Community Chat</h4>
           <p>Connect with fellow cat lovers in real-time. Share tips, ask questions, and celebrate the joy of being a
             cat parent.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('chat');">Join Chat →</button>
+          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('chat');">Join Chat â†’</button>
         </div>
       </div>
 
@@ -625,11 +595,11 @@
           src="https://static.boredpanda.com/blog/wp-content/uploads/2025/09/534613306_17997946706816236_594409648058502641_n-68c7b5aac1b24__880.jpg"
           alt="Moments" />
         <div class="card-body">
-          <h4>📸 Cat Moments</h4>
+          <h4>ðŸ“¸ Cat Moments</h4>
           <p>Share adorable photos and heartwarming stories of your feline friends. Because every whisker deserves the
             spotlight.</p>
           <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('moments');">View Gallery
-            →</button>
+            â†’</button>
         </div>
       </div>
 
@@ -638,18 +608,18 @@
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS25K5SnQQU33tHfypJelWWbXU81HM6rhyBZ0G3Y5dJ1HAnh3AJFvFide0s&s=10"
           alt="Moments" />
         <div class="card-body">
-          <h4>🤝Donations</h4>
+          <h4>ðŸ¤Donations</h4>
           <p>Provide what you can.Your small donation can save a life.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('donations');">Donate →</button>
+          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('donations');">Donate â†’</button>
         </div>
       </div>
 
       <div class="service-card" onclick="navigateToScreen('memes')">
         <img src="https://i.pinimg.com/736x/e1/48/ef/e148ef16864d6134038d296b9e7135f7.jpg" alt="Moments" />
         <div class="card-body">
-          <h4>😂Cat Memes</h4>
+          <h4>ðŸ˜‚Cat Memes</h4>
           <p>Enjoy ,like and share your PAWs memes.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('memes');">Cat Memes →</button>
+          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('memes');">Cat Memes â†’</button>
         </div>
       </div>
 
@@ -658,9 +628,9 @@
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSI9IfTWzjSHOfiynaKuJaIR1pbZySZpuA6xA_GQCuW1mec4raOcNuh-R4q&s=10"
           alt="Moments" />
         <div class="card-body">
-          <h4>🏠Shelter</h4>
+          <h4>ðŸ Shelter</h4>
           <p>Help find shelter for cats.They deserve a warm home too.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('shelters');">Shelters →</button>
+          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('shelters');">Shelters â†’</button>
         </div>
       </div>
     </div>
@@ -672,10 +642,10 @@
     }
 
     var googleApiKey = "AIzaSyAGu0YXmo6JsY7xS_k4eQmi1Jv6vPRirLQ";
-    var isMapVisible = ${IS_MAP_VISIBLE};
+    var isMapVisible = false;
 
-    var initLat = parseFloat('${USER_LAT}') || 0;
-    var initLon = parseFloat('${USER_LON}') || 0;
+    var initLat = parseFloat('23.8103') || 0;
+    var initLon = parseFloat('90.4125') || 0;
     if (!initLat || !initLon || (initLat === 0 && initLon === 0)) {
       initLat = 23.8103;
       initLon = 90.4125;
@@ -699,11 +669,13 @@
     }
 
     function persistLocation(loc, lat, lng) {
-      alert('selectLocation:' + loc + '|' + lat + '|' + lng);
+      console.log('selectLocation:' + loc + '|' + lat + '|' + lng);
     }
 
     function updateStaticMap(lat, lng) {
       var mapImg = document.getElementById('map');
+      var popular = document.getElementById('popularSection');
+      if (popular) popular.style.display = 'none';
       mapImg.style.display = 'block';
 
       var markers = 'markers=color:red%7C' + lat + ',' + lng;
@@ -719,8 +691,7 @@
       mapImg.onerror = function () {
         mapImg.onerror = function () {
           mapImg.onerror = null;
-          // If both map sources fail, just hide the map — the confirmation message still shows
-          mapImg.style.display = 'none';
+          mapImg.alt = 'Map could not be loaded';
         };
         mapImg.src = osmUrl;
       };
@@ -762,30 +733,8 @@
     }
 
     function setAddress(loc) {
-      try {
-        var inputEl = document.getElementById('address-input');
-        if (inputEl) {
-          inputEl.value = loc;
-        }
-        submitLocation();
-      } catch(e) {
-        if (document.getElementById('address-input')) {
-          document.getElementById('address-input').value = 'ERROR: ' + e.message;
-        }
-      }
-    }
-
-    function showLocationConfirmed(loc) {
-      try {
-        var el = document.getElementById('locationConfirmed');
-        var name = document.getElementById('confirmedName');
-        if (el && name) {
-          name.textContent = loc;
-          el.style.display = 'block';
-        }
-      } catch(e) {
-        console.log(e);
-      }
+      document.getElementById('address-input').value = loc;
+      submitLocation();
     }
 
     function submitLocation() {
@@ -796,7 +745,6 @@
       var known = coordsForLocation(loc);
       if (known) {
         updateStaticMap(known[0], known[1]);
-        showLocationConfirmed(loc);
         persistLocation(loc, known[0], known[1]);
         return;
       }
@@ -812,12 +760,10 @@
             lng = data.results[0].geometry.location.lng;
           }
           updateStaticMap(lat, lng);
-          showLocationConfirmed(loc);
           persistLocation(loc, lat, lng);
         })
         .catch(function () {
           updateStaticMap(23.8103, 90.4125);
-          showLocationConfirmed(loc);
           persistLocation(loc, 23.8103, 90.4125);
         });
     }
@@ -829,6 +775,7 @@
       document.getElementById('locationDialog').style.display = 'none';
       document.getElementById('address-input').value = 'Locating...';
       document.getElementById('map').style.display = 'block';
+      document.getElementById('popularSection').style.display = 'none';
       alert('getExactLocation');
     }
 

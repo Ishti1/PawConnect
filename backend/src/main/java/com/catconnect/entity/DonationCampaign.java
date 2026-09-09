@@ -65,6 +65,11 @@ public class DonationCampaign {
 
     private Integer likes;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "campaign_likes", joinColumns = @JoinColumn(name = "campaign_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> likedBy = new java.util.HashSet<>();
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

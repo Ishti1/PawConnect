@@ -9,6 +9,7 @@ import com.catconnect.dto.MomentUpdateRequest;
 import com.catconnect.repository.AdoptionListingRepository;
 import com.catconnect.repository.CatMemeRepository;
 import com.catconnect.repository.CatMomentRepository;
+import com.catconnect.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class UserContentService {
     private final OwnershipService ownershipService;
     private final com.catconnect.repository.UserRepository userRepository;
     private final com.catconnect.repository.CatMomentCommentRepository catMomentCommentRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void deleteMoment(Long id, Long currentUserId) {
@@ -134,11 +136,20 @@ public class UserContentService {
 
     @Transactional
     public com.catconnect.entity.CatMomentComment addComment(Long momentId, Long userId, com.catconnect.dto.CommentRequest req) {
-        return catMomentCommentRepository.save(com.catconnect.entity.CatMomentComment.builder()
+        com.catconnect.entity.CatMomentComment savedComment = catMomentCommentRepository.save(com.catconnect.entity.CatMomentComment.builder()
                 .momentId(momentId)
                 .userId(userId)
                 .content(req.getContent())
                 .build());
+                
+        catMomentRepository.findById(momentId).ifPresent(moment -> {
+            if (!moment.getUserId().equals(userId)) {
+                String commenterName = userRepository.findById(userId).map(com.catconnect.entity.User::getDisplayName).orElse("Someone");
+                notificationService.createNotification(moment.getUserId(), commenterName + " commented on your post", "COMMENT", userId);
+            }
+        });
+        
+        return savedComment;
     }
 
     public List<com.catconnect.dto.CommentResponse> getComments(Long momentId) {

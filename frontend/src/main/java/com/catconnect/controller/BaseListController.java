@@ -86,9 +86,12 @@ public abstract class BaseListController {
 
     /** Called by MainController when restoring a cached screen */
     public void refreshData() {
+        onRefreshData();
         resetListState();
         loadData();
     }
+
+    protected void onRefreshData() {}
 
     private void loadData(boolean showLoading) {
         if (showLoading && statusLabel != null) {
@@ -232,6 +235,10 @@ public abstract class BaseListController {
         var user = Session.getCurrentUser();
         if (user == null || user.getId() == null) return false;
         return item.path("userId").asLong() == user.getId();
+    }
+
+    protected boolean isCurrentUserAdmin() {
+        return Session.getCurrentUser() != null && Session.getCurrentUser().isAdmin();
     }
 
     protected Button deleteButton(long id) {
@@ -581,7 +588,7 @@ public abstract class BaseListController {
         infoBox.setMaxWidth(Double.MAX_VALUE);
 
         HBox header;
-        if (isOwn(item)) {
+        if (isOwn(item) || isCurrentUserAdmin()) {
             Button editBtn = new Button("Edit");
             editBtn.getStyleClass().add("edit-button");
             editBtn.setOnAction(e -> onEdit.run());
