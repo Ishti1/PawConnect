@@ -78,8 +78,7 @@ public class MapController {
          * be Chrome when requesting map resources.
          */
         webEngine.setUserAgent(
-                "PawConnect/1.0 "
-                        + "(JavaFX desktop university project)"
+                "PawConnect/1.0 (+https://github.com/Ishti1/PawConnect)"
         );
 
 
