@@ -100,6 +100,12 @@ public class MainController {
     private Button btnMemes;
 
     @FXML
+    private Button btnCatGame;
+
+    @FXML
+    private Button btnCatLibrary;
+
+    @FXML
     private Button btnManageAccount;
 
     @FXML
@@ -488,6 +494,52 @@ public class MainController {
 
     /*
      * =========================================================
+     * CAT GAME
+     * =========================================================
+     */
+
+    @FXML
+    private void showCatGame() {
+
+        setActive(
+                btnCatGame
+        );
+
+
+        showCachedScreen(
+                "catgame",
+                "/fxml/catgame.fxml",
+                false,
+                false
+        );
+    }
+
+
+    /*
+     * =========================================================
+     * CAT LIBRARY
+     * =========================================================
+     */
+
+    @FXML
+    private void showCatLibrary() {
+
+        setActive(
+                btnCatLibrary
+        );
+
+
+        showCachedScreen(
+                "cat-library",
+                "/fxml/cat_library.fxml",
+                false,
+                false
+        );
+    }
+
+
+    /*
+     * =========================================================
      * MANAGE ACCOUNT
      * =========================================================
      */
@@ -783,6 +835,12 @@ public class MainController {
                 case "shelters" -> showShelters();
 
                 case "memes" -> showMemes();
+
+                case "catgame", "cat-game", "memory", "memory-match", "game" ->
+                        showCatGame();
+
+                case "cat-library", "library" ->
+                        showCatLibrary();
 
                 case "manage-account" ->
                         showManageAccount();
@@ -2012,6 +2070,10 @@ public class MainController {
                 btnAdoption,
 
                 btnMemes,
+
+                btnCatGame,
+
+                btnCatLibrary,
 
                 btnManageAccount,
 
