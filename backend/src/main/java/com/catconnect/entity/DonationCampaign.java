@@ -52,12 +52,23 @@ public class DonationCampaign {
     @Column(name = "payment_instructions", columnDefinition = "TEXT")
     private String paymentInstructions;
 
+    @Column(name = "contact_phone")
+    private String contactPhone;
+
+    @Transient
+    private String senderName;
+
     private String status;
 
     @Column(name = "user_id")
     private Long userId;
 
     private Integer likes;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "campaign_likes", joinColumns = @JoinColumn(name = "campaign_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> likedBy = new java.util.HashSet<>();
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

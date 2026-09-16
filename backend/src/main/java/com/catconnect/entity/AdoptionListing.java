@@ -39,8 +39,23 @@ public class AdoptionListing {
 
     private Integer likes;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "adoption_likes", joinColumns = @JoinColumn(name = "adoption_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> likedBy = new java.util.HashSet<>();
+
     @Column(name = "shelter_id")
     private Long shelterId;
+
+    private String location;
+    
+    private String address;
+    
+    @Column(name = "contact_phone")
+    private String contactPhone;
+
+    @Transient
+    private String senderName;
 
     private String status;
 

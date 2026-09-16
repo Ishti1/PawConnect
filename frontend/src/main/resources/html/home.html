@@ -1,95 +1,100 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAGu0YXmo6JsY7xS_k4eQmi1Jv6vPRirLQ&callback=initMap&v=3.55" async defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet 1.8.0 is intentional: it behaves more reliably in JavaFX WebView. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+
   <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
   <style>
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
-    html,
-    body {
+    html, body {
+      margin: 0;
       width: 100%;
-      height: 100%;
+      min-height: 100%;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #faf9f7;
       color: #333;
-      margin: 0;
       overflow-x: hidden;
     }
 
-    /* ── Location Dialog ── */
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* =====================================================
+       Location permission dialog
+       ===================================================== */
     .location-dialog-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      inset: 0;
       display: none;
-      z-index: 9999;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.50);
+      z-index: 99999;
     }
 
     .location-dialog {
+      position: relative;
+      width: 320px;
+      max-width: calc(100% - 32px);
+      padding: 20px;
+      border-radius: 12px;
       background: #202124;
       color: white;
-      border-radius: 12px;
-      width: 320px;
-      padding: 20px;
-      font-family: 'Inter', sans-serif;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
     }
 
     .location-dialog-close {
       position: absolute;
-      top: 15px;
+      top: 14px;
       right: 15px;
       color: #9aa0a6;
       cursor: pointer;
-      font-size: 16px;
     }
 
     .location-dialog-header {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      margin-bottom: 12px;
       font-size: 16px;
       font-weight: 600;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
 
     .location-dialog-title {
-      font-size: 14px;
-      margin-bottom: 20px;
-      color: #e8eaed;
       display: flex;
+      gap: 9px;
       align-items: center;
-      gap: 10px;
+      margin-bottom: 18px;
+      color: #e8eaed;
+      font-size: 14px;
     }
 
     .location-dialog-btn {
+      width: 100%;
+      margin: 0 0 10px;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 20px;
       background: #004a77;
       color: #e8eaed;
-      border: none;
-      border-radius: 20px;
-      padding: 10px 16px;
-      width: 100%;
-      margin-bottom: 10px;
       font-size: 14px;
       font-weight: 500;
-      cursor: pointer;
     }
 
     .location-dialog-btn:hover {
@@ -100,15 +105,23 @@
       margin-bottom: 0;
     }
 
-    /* ── Hero Section ── */
+    /* =====================================================
+       Hero
+       ===================================================== */
     .hero {
       display: flex;
-      min-height: 480px;
       width: 100%;
+      min-height: 620px;
+      align-items: stretch;
+    }
+
+    .hero-left,
+    .hero-right {
+      flex: 1 1 50%;
+      min-width: 0;
     }
 
     .hero-left {
-      flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -116,111 +129,132 @@
       background: #faf9f7;
     }
 
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 24px;
+    }
+
+    .brand-logo {
+      width: 200px;
+      height: 250px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+
     .hero-left h1 {
+      margin: 0;
       font-family: 'Playfair Display', serif;
       font-size: 48px;
       font-weight: 700;
       color: #ff6b6b;
-      line-height: 1.15;
-      margin-bottom: 16px;
+      line-height: 1.12;
     }
 
     .hero-left .subtitle {
+      margin: 12px 0 0;
       font-size: 18px;
       color: #888;
       font-weight: 300;
-      margin-bottom: 28px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 14px 36px;
+      border: none;
+      border-radius: 30px;
+      background: #ff6b6b;
+      color: white;
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, .35);
+    }
+
+    .cta-btn:hover {
+      background: #ee5a5a;
     }
 
     .hero-left .desc {
-      font-size: 14px;
+      max-width: 520px;
+      margin-top: 28px;
       color: #666;
       line-height: 1.7;
-      max-width: 380px;
+      font-size: 14px;
+    }
+
+    .hero-cat {
+      width: 300px;
+      height: 300px;
       margin-top: 24px;
+      border-radius: 50%;
+      border: 4px solid #ff6b6b;
+      object-fit: cover;
+      box-shadow: 0 8px 24px rgba(255, 107, 107, .25);
     }
 
-    .hero-left .cta-btn {
-      display: inline-block;
-      background: #ff6b6b;
-      color: white;
-      border: none;
-      border-radius: 30px;
-      padding: 14px 36px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-decoration: none;
-      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.35);
-    }
-
-    .hero-left .cta-btn:hover {
-      background: #ee5a5a;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.45);
-    }
-
-    /* ── Right side: fp-card (previous style) ── */
     .hero-right {
-      flex: 1;
-      background: #f7f7f7;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
-      padding: 30px;
-      position: relative;
-      overflow: hidden;
+      justify-content: center;
+      padding: 40px 36px;
+      background: #f7f7f7;
+      /* IMPORTANT: do not clip the location buttons below the map. */
+      overflow: visible;
     }
 
+    /* =====================================================
+       Location card
+       ===================================================== */
     .fp-card {
       position: relative;
-      z-index: 2;
-      background: white;
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: 0 8px 32px rgba(255, 107, 107, 0.15);
-      border: 2px solid rgba(255, 107, 107, 0.4);
       width: 100%;
       max-width: 500px;
+      padding: 32px;
+      border: 2px solid rgba(255, 107, 107, .40);
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 8px 32px rgba(255, 107, 107, .15);
+      /* IMPORTANT: allow the card to grow naturally when mini map appears. */
+      overflow: visible;
     }
 
     .fp-card h2 {
-      margin: 0 0 24px 0;
-      font-size: 22px;
-      color: #333;
+      margin: 0 0 24px;
       text-align: center;
+      font-size: 22px;
       font-weight: 700;
+      color: #333;
     }
 
     .input-container {
+      position: relative;
       display: flex;
       gap: 12px;
-      position: relative;
+      width: 100%;
     }
 
     .input-label {
       position: absolute;
       top: -10px;
       left: 12px;
+      z-index: 3;
+      padding: 0 5px;
       background: white;
-      padding: 0 4px;
-      font-size: 12px;
       color: #757575;
-      z-index: 2;
+      font-size: 12px;
     }
 
     .input-wrapper {
-      flex: 1;
+      min-width: 0;
+      flex: 1 1 auto;
       display: flex;
       align-items: center;
+      padding: 0 12px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      padding: 0 12px;
       background: white;
-      position: relative;
-      transition: border-color 0.2s;
     }
 
     .input-wrapper:focus-within {
@@ -228,31 +262,31 @@
     }
 
     #address-input {
-      flex: 1;
+      min-width: 0;
+      flex: 1 1 auto;
+      padding: 16px 0;
       border: none;
       outline: none;
-      font-size: 16px;
-      padding: 16px 0;
-      color: #333;
       background: transparent;
+      color: #333;
+      font-size: 16px;
     }
 
     .locate-btn {
+      flex: 0 0 auto;
       display: flex;
       align-items: center;
       gap: 6px;
-      background: none;
+      padding: 8px 4px 8px 8px;
       border: none;
+      background: transparent;
       color: #ff6b6b;
-      font-weight: bold;
       font-size: 14px;
-      cursor: pointer;
-      padding: 8px;
-      transition: opacity 0.2s;
+      font-weight: 700;
     }
 
     .locate-btn:hover {
-      opacity: 0.7;
+      opacity: .75;
     }
 
     .locate-btn svg {
@@ -262,123 +296,214 @@
     }
 
     .submit-btn {
-      background: #ff6b6b;
-      color: white;
-      border: none;
-      border-radius: 8px;
+      flex: 0 0 52px;
       width: 52px;
-      font-size: 20px;
-      cursor: pointer;
+      min-height: 52px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s;
+      border: none;
+      border-radius: 8px;
+      background: #ff6b6b;
+      color: white;
     }
 
     .submit-btn:hover {
       background: #ee5a5a;
     }
 
+    /* =====================================================
+       Mini map
+
+       IMPORTANT:
+       - wrapper controls the exact size
+       - Leaflet map fills wrapper
+       - wrapper is hidden until a valid location is selected
+       ===================================================== */
+    #miniMapWrap {
+      position: relative;
+      display: none;
+      width: 100%;
+      height: 220px;
+      min-height: 220px;
+      max-height: 220px;
+      margin: 18px 0 0;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #eee;
+      contain: layout paint;
+    }
+
+    #miniMap {
+      position: absolute;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      max-width: none !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: #eee;
+      cursor: grab;
+    }
+
+    #miniMap:active {
+      cursor: grabbing;
+    }
+
+    #openMapBtn {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      z-index: 10000;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .97);
+      color: #333;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .20);
+    }
+
+    #openMapBtn:hover {
+      background: #ff6b6b;
+      color: white;
+    }
+
+    /* JavaFX WebView + Leaflet rendering fixes. */
+    #miniMap .leaflet-tile {
+      opacity: 1 !important;
+      transition: none !important;
+      -webkit-transition: none !important;
+      max-width: none !important;
+      max-height: none !important;
+    }
+
+    #miniMap .leaflet-zoom-animated,
+    #miniMap .leaflet-fade-anim .leaflet-tile,
+    #miniMap .leaflet-zoom-anim .leaflet-zoom-animated {
+      transition: none !important;
+      -webkit-transition: none !important;
+    }
+
+    #miniMap .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .15) !important;
+    }
+
+    #miniMap .leaflet-control-zoom a {
+      color: #333 !important;
+    }
+
+    /* =====================================================
+       Popular locations
+       ===================================================== */
     .popular-section {
-      margin-top: 24px;
+      position: relative;
+      z-index: 20;
+      display: block;
+      width: 100%;
+      margin-top: 20px;
     }
 
     .popular-section h3 {
-      margin: 0 0 16px 0;
-      font-size: 16px;
+      margin: 0 0 14px;
       color: #333;
+      font-size: 16px;
     }
 
     .pill-container {
+      position: relative;
+      z-index: 21;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      width: 100%;
     }
 
     .pill-btn {
-      background: white;
+      position: relative;
+      z-index: 22;
+      min-width: 90px;
+      padding: 9px 16px;
       border: 1px solid #ccc;
-      border-radius: 20px;
-      padding: 8px 16px;
-      font-size: 14px;
+      border-radius: 22px;
+      background: white;
       color: #333;
-      cursor: pointer;
-      transition: all 0.2s;
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
     }
 
     .pill-btn:hover {
       border-color: #ff6b6b;
-      color: #ff6b6b;
       background: #fff5f5;
+      color: #ff6b6b;
     }
 
-    #map {
-      width: 100%;
-      height: 250px;
+    .location-status {
       display: none;
-      border-radius: 8px;
-      margin-top: 16px;
-      border: 1px solid #ddd;
+      margin-top: 10px;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.4;
     }
 
-    .leaflet-control-zoom {
-      border: none !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    }
-
-    .leaflet-control-zoom a {
-      color: #333 !important;
-      border-radius: 8px !important;
-      margin-bottom: 4px;
-    }
-
-    /* ── Services Section ── */
+    /* =====================================================
+       Services
+       ===================================================== */
     .services {
+      width: 100%;
       padding: 60px 50px;
       background: #fff;
-      width: 100%;
-      min-height: calc(100vh - 480px);
     }
 
     .services-header {
-      text-align: center;
       margin-bottom: 50px;
+      text-align: center;
     }
 
     .services-header h2 {
+      margin: 0 0 10px;
       font-family: 'Playfair Display', serif;
       font-size: 36px;
       color: #333;
-      margin-bottom: 10px;
     }
 
     .services-header p {
+      margin: 0;
       color: #888;
       font-size: 16px;
     }
 
     .services-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 30px;
       max-width: 1200px;
       margin: 0 auto;
     }
 
     .service-card {
-      background: #faf9f7;
-      border-radius: 16px;
-      overflow: hidden;
-      transition: all 0.3s;
-      cursor: pointer;
-      border: 1px solid #f0eeec;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #f0eeec;
+      border-radius: 16px;
+      background: #faf9f7;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
     }
 
     .service-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .08);
     }
 
     .service-card img {
@@ -387,422 +512,704 @@
       object-fit: cover;
     }
 
-    .service-card .card-body {
-      padding: 24px;
+    .card-body {
       flex: 1;
       display: flex;
       flex-direction: column;
+      padding: 24px;
     }
 
     .service-card h4 {
-      font-size: 20px;
-      font-weight: 700;
+      margin: 0 0 10px;
       color: #333;
-      margin-bottom: 10px;
+      font-size: 20px;
     }
 
     .service-card p {
-      font-size: 14px;
-      color: #777;
-      line-height: 1.7;
       flex: 1;
+      margin: 0;
+      color: #777;
+      font-size: 14px;
+      line-height: 1.7;
     }
 
-    .service-card .tag {
-      display: inline-block;
-      margin-top: 14px;
-      background: #ff6b6b;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .service-card .nav-btn {
-      display: inline-block;
+    .nav-btn {
+      width: 100%;
       margin-top: 16px;
-      background: #ff6b6b;
-      color: white;
+      padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      padding: 12px 24px;
+      background: #ff6b6b;
+      color: white;
       font-size: 14px;
       font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      width: 100%;
     }
 
-    .service-card .nav-btn:hover {
+    .nav-btn:hover {
       background: #ee5a5a;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
     }
 
-    /* ── Footer ── */
     .footer {
       padding: 30px 50px;
-      background: #faf9f7;
-      text-align: center;
-      color: #aaa;
-      font-size: 13px;
       border-top: 1px solid #eee;
-      width: 100%;
+      background: #faf9f7;
+      color: #aaa;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .hero {
+        flex-direction: column;
+      }
+
+      .hero-left,
+      .hero-right {
+        width: 100%;
+      }
+
+      .services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 650px) {
+      .hero-left,
+      .hero-right,
+      .services {
+        padding-left: 22px;
+        padding-right: 22px;
+      }
+
+      .brand-row {
+        gap: 16px;
+      }
+
+      .brand-logo {
+        width: 120px;
+        height: 150px;
+      }
+
+      .hero-left h1 {
+        font-size: 38px;
+      }
+
+      .fp-card {
+        padding: 24px;
+      }
+
+      .input-container {
+        gap: 8px;
+      }
+
+      .locate-btn {
+        font-size: 12px;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <div class="location-dialog-overlay" id="locationDialog">
-    <div class="location-dialog">
-      <div class="location-dialog-close" onclick="closeLocationDialog()">✕</div>
-      <div class="location-dialog-header">PawConnect <span
-          style="font-weight:normal; font-size:14px; color:#e8eaed">wants to</span></div>
-      <div class="location-dialog-title">
-        <svg fill="#e8eaed" width="18" height="18" viewBox="0 0 24 24">
-          <path
-            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-        </svg>
-        Know your location
-      </div>
-      <button class="location-dialog-btn" onclick="allowLocation()">Allow while visiting the site</button>
-      <button class="location-dialog-btn" onclick="allowLocation()">Allow this time</button>
-      <button class="location-dialog-btn" onclick="closeLocationDialog()">Never allow</button>
+<!-- Location permission dialog -->
+<div class="location-dialog-overlay" id="locationDialog">
+  <div class="location-dialog">
+    <div class="location-dialog-close" onclick="closeLocationDialog()">✕</div>
+    <div class="location-dialog-header">
+      PawConnect
+      <span style="font-weight:normal; font-size:14px; color:#e8eaed">wants to</span>
     </div>
+    <div class="location-dialog-title">
+      <svg fill="#e8eaed" width="18" height="18" viewBox="0 0 24 24">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
+      </svg>
+      Know your location
+    </div>
+    <button class="location-dialog-btn" onclick="allowLocation()">Allow while visiting the site</button>
+    <button class="location-dialog-btn" onclick="allowLocation()">Allow this time</button>
+    <button class="location-dialog-btn" onclick="closeLocationDialog()">Never allow</button>
+  </div>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="brand-row">
+      <img class="brand-logo" src="pawconnect_logo.png" alt="PawConnect logo">
+      <div>
+        <h1>Welcome to<br>PawConnect</h1>
+        <p class="subtitle">Adopt. Care. Connect</p>
+      </div>
+    </div>
+
+    <button class="cta-btn" onclick="document.querySelector('.services').scrollIntoView({behavior:'smooth'})">
+      Explore Our Services
+    </button>
+
+    <p class="desc">
+      Since 2026, PawConnect has been connecting pet lovers across Dhaka with trusted veterinarians,
+      adoption centers, and a vibrant community of cat enthusiasts. Your furry friend deserves the best —
+      and we're here to help.
+    </p>
+
+    <img
+            class="hero-cat"
+            src="https://static.boredpanda.com/blog/wp-content/uploads/2025/10/funny-cute-cats-pictures-68df6d540e8d0__700.jpg"
+            alt="Cat">
   </div>
 
-  <div class="hero">
-    <div class="hero-left">
-      <div style="display: flex; align-items: center; gap: 30px; margin-bottom: 24px;">
-        <img src="pawconnect_logo.png" alt="Logo" style="width: 200px; height: 250px; object-fit: contain;" />
-        <div style="display: flex; flex-direction: column; align-items: flex-start;">
-          <h1 style="margin: 0; line-height: 1.1;">Welcome to<br />PawConnect</h1>
-          <p class="subtitle" style="margin-top: 12px; margin-bottom: 0;">Adopt. Care. Connect</p>
-        </div>
-      </div>
-      <button class="cta-btn" onclick="document.querySelector('.services').scrollIntoView({behavior:'smooth'})">Explore
-        Our Services</button>
-      <p class="desc">Since 2026, PawConnect has been connecting pet lovers across Dhaka with trusted veterinarians,
-        adoption centers, and a vibrant community of cat enthusiasts. Your furry friend deserves the best — and we're
-        here to help.</p>
-      <img
-        src="https://static.boredpanda.com/blog/wp-content/uploads/2025/10/funny-cute-cats-pictures-68df6d540e8d0__700.jpg"
-        alt="Cat"
-        style="width:300px; height:300px; object-fit:cover; margin-top:24px; border-radius:50%; border:4px solid #ff6b6b; box-shadow: 0 8px 24px rgba(255,107,107,0.25);" />
-    </div>
-    <div class="hero-right">
-      <div class="fp-card">
-        <h2>Enter Your Address</h2>
-        <div class="input-container">
-          <div class="input-label">Your Address</div>
-          <div class="input-wrapper">
-            <input type="text" id="address-input" placeholder="Street, City, Area" value="${LOCATION}"
-              onkeypress="if(event.key === 'Enter') submitLocation();"
-              oninput="if(this.value.trim() === '') { document.getElementById('popularSection').style.display = 'block'; document.getElementById('map').style.display = 'none'; }" />
-            <button class="locate-btn" onclick="doLocateMe()">
-              <svg focusable="false" aria-hidden="true" viewBox="0 0 24 24">
-                <path
-                  d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z">
-                </path>
-              </svg>
-              Locate me
-            </button>
-          </div>
-          <button id="submitBtn" class="submit-btn" onclick="submitLocation()">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" />
+  <div class="hero-right">
+    <div class="fp-card">
+      <h2>Enter Your Address</h2>
+
+      <div class="input-container">
+        <div class="input-label">Your Address</div>
+
+        <div class="input-wrapper">
+          <input
+                  type="text"
+                  id="address-input"
+                  placeholder="Street, City, Area"
+                  value="${LOCATION}"
+                  onkeypress="if(event.key === 'Enter') submitLocation();"
+                  oninput="handleAddressInput(this.value)">
+
+          <button class="locate-btn" type="button" onclick="doLocateMe()">
+            <svg focusable="false" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"></path>
             </svg>
+            Locate me
           </button>
         </div>
-        <img id="map" style="object-fit: cover; display: none;" />
-        <div class="popular-section" id="popularSection">
-          <h3>Popular locations</h3>
-          <div class="pill-container">
-            <button class="pill-btn" onclick="setAddress('Dhanmondi')">Dhanmondi</button>
-            <button class="pill-btn" onclick="setAddress('Uttara')">Uttara</button>
-            <button class="pill-btn" onclick="setAddress('Banani')">Banani</button>
-            <button class="pill-btn" onclick="setAddress('Gulshan')">Gulshan</button>
-            <button class="pill-btn" onclick="setAddress('Mohakhali')">Mohakhali</button>
-          </div>
+
+        <button id="submitBtn" class="submit-btn" type="button" onclick="submitLocation()" title="Find location">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- This wrapper is hidden until a valid location is selected. -->
+      <div id="miniMapWrap">
+        <div id="miniMap" title="Your selected location"></div>
+        <button id="openMapBtn" type="button" onclick="openFullMap()">Open Paw Map →</button>
+      </div>
+
+      <div id="locationStatus" class="location-status"></div>
+
+      <!-- Always stays OUTSIDE the map wrapper and remains clickable. -->
+      <div class="popular-section" id="popularSection">
+        <h3>Popular locations</h3>
+        <div class="pill-container">
+          <button class="pill-btn" type="button" onclick="setAddress('Dhanmondi')">Dhanmondi</button>
+          <button class="pill-btn" type="button" onclick="setAddress('Uttara')">Uttara</button>
+          <button class="pill-btn" type="button" onclick="setAddress('Banani')">Banani</button>
+          <button class="pill-btn" type="button" onclick="setAddress('Gulshan')">Gulshan</button>
+          <button class="pill-btn" type="button" onclick="setAddress('Mohakhali')">Mohakhali</button>
         </div>
       </div>
     </div>
   </div>
+</section>
 
-  <div class="services">
-    <div class="services-header">
-      <h2>Our Services</h2>
-      <p>Everything your furry companion needs, all in one place.</p>
+<!-- Services -->
+<section class="services">
+  <div class="services-header">
+    <h2>Our Services</h2>
+    <p>Everything your furry companion needs, all in one place.</p>
+  </div>
+
+  <div class="services-grid">
+    <div class="service-card" onclick="navigateToScreen('vets')">
+      <img src="vet_home.jpg" alt="Vet">
+      <div class="card-body">
+        <h4>🏥 Nearby Vets</h4>
+        <p>Find trusted veterinarians near your location. From routine checkups to 24/7 emergency care, we've got every paw covered.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('vets');">Find Vets →</button>
+      </div>
     </div>
-    <div class="services-grid">
 
-      <div class="service-card" onclick="navigateToScreen('vets')">
-        <img src="vet_home.jpg" alt="Vet" />
-        <div class="card-body">
-          <h4>🏥 Nearby Vets</h4>
-          <p>Find trusted veterinarians near your location. From routine checkups to 24/7 emergency care, we've got
-            every paw covered.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('vets');">Find Vets →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('adoption')">
+      <img src="https://assets3.thrillist.com/v1/image/3055628/792x416/scale;webp=auto;jpeg_quality=60;progressive.jpg" alt="Adopt">
+      <div class="card-body">
+        <h4>🐱 Adoption Center</h4>
+        <p>Give a loving home to a cat in need. Browse adoptable cats in your area and find your perfect furry soulmate today.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('adoption');">Browse Cats →</button>
       </div>
+    </div>
 
-      <div class="service-card" onclick="navigateToScreen('adoption')">
-        <img
-          src="https://assets3.thrillist.com/v1/image/3055628/792x416/scale;webp=auto;jpeg_quality=60;progressive.jpg"
-          alt="Adopt" />
-        <div class="card-body">
-          <h4>🐱 Adoption Center</h4>
-          <p>Give a loving home to a cat in need. Browse adoptable cats in your area and find your perfect furry
-            soulmate today.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('adoption');">Browse Cats
-            →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('lost-found')">
+      <img src="https://www.shutterstock.com/image-vector/lost-missing-pet-animal-poster-260nw-2372295219.jpg" alt="Lost and found">
+      <div class="card-body">
+        <h4>🔍 Lost &amp; Found</h4>
+        <p>Lost your cat or found a stray? Post alerts visible to your entire neighborhood and reunite pets with their families.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('lost-found');">Report Now →</button>
       </div>
+    </div>
 
-      <div class="service-card" onclick="navigateToScreen('lost-found')">
-        <img src="https://www.shutterstock.com/image-vector/lost-missing-pet-animal-poster-260nw-2372295219.jpg"
-          alt="Lost" />
-        <div class="card-body">
-          <h4>🔍 Lost &amp; Found</h4>
-          <p>Lost your cat or found a stray? Post alerts visible to your entire neighborhood and reunite pets with their
-            families.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('lost-found');">Report Now
-            →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('shops')">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnwAIXq6NmWvpRoR2UI8hgXZTQeSxl8U2kmpFG1sDBtht4x4wkm5ODZj_m&s=10" alt="Cat shop">
+      <div class="card-body">
+        <h4>🛒 Cat Shops</h4>
+        <p>Discover the best pet stores near you for food, toys, litter, and all the essentials your cat needs to thrive.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('shops');">Shop Now →</button>
       </div>
+    </div>
 
-      <div class="service-card" onclick="navigateToScreen('shops')">
-        <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnwAIXq6NmWvpRoR2UI8hgXZTQeSxl8U2kmpFG1sDBtht4x4wkm5ODZj_m&s=10"
-          alt="Shop" />
-        <div class="card-body">
-          <h4>🛒 Cat Shops</h4>
-          <p>Discover the best pet stores near you for food, toys, litter, and all the essentials your cat needs to
-            thrive.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('shops');">Shop Now →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('chat')">
+      <img src="https://thumbs.dreamstime.com/b/group-chat-icon-online-messaging-353377229.jpg" alt="Community chat">
+      <div class="card-body">
+        <h4>💬 Community Chat</h4>
+        <p>Connect with fellow cat lovers in real-time. Share tips, ask questions, and celebrate the joy of being a cat parent.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('chat');">Join Chat →</button>
       </div>
+    </div>
 
-      <div class="service-card" onclick="navigateToScreen('chat')">
-        <img src="https://thumbs.dreamstime.com/b/group-chat-icon-online-messaging-353377229.jpg" alt="Chat" />
-        <div class="card-body">
-          <h4>💬 Community Chat</h4>
-          <p>Connect with fellow cat lovers in real-time. Share tips, ask questions, and celebrate the joy of being a
-            cat parent.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('chat');">Join Chat →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('moments')">
+      <img src="https://static.boredpanda.com/blog/wp-content/uploads/2025/09/534613306_17997946706816236_594409648058502641_n-68c7b5aac1b24__880.jpg" alt="Cat moments">
+      <div class="card-body">
+        <h4>📸 Cat Moments</h4>
+        <p>Share adorable photos and heartwarming stories of your feline friends. Because every whisker deserves the spotlight.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('moments');">View Gallery →</button>
       </div>
+    </div>
 
-      <div class="service-card" onclick="navigateToScreen('moments')">
-        <img
-          src="https://static.boredpanda.com/blog/wp-content/uploads/2025/09/534613306_17997946706816236_594409648058502641_n-68c7b5aac1b24__880.jpg"
-          alt="Moments" />
-        <div class="card-body">
-          <h4>📸 Cat Moments</h4>
-          <p>Share adorable photos and heartwarming stories of your feline friends. Because every whisker deserves the
-            spotlight.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('moments');">View Gallery
-            →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('donations')">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS25K5SnQQU33tHfypJelWWbXU81HM6rhyBZ0G3Y5dJ1HAnh3AJFvFide0s&s=10" alt="Donations">
+      <div class="card-body">
+        <h4>🤝 Donations</h4>
+        <p>Provide what you can. Your small donation can save a life.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('donations');">Donate →</button>
       </div>
+    </div>
 
-      <div class="service-card" onclick="navigateToScreen('donations')">
-        <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS25K5SnQQU33tHfypJelWWbXU81HM6rhyBZ0G3Y5dJ1HAnh3AJFvFide0s&s=10"
-          alt="Moments" />
-        <div class="card-body">
-          <h4>🤝Donations</h4>
-          <p>Provide what you can.Your small donation can save a life.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('donations');">Donate →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('memes')">
+      <img src="https://i.pinimg.com/736x/e1/48/ef/e148ef16864d6134038d296b9e7135f7.jpg" alt="Cat memes">
+      <div class="card-body">
+        <h4>😂 Cat Memes</h4>
+        <p>Enjoy, like and share your favorite PAWs memes.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('memes');">Cat Memes →</button>
       </div>
+    </div>
 
-      <div class="service-card" onclick="navigateToScreen('memes')">
-        <img src="https://i.pinimg.com/736x/e1/48/ef/e148ef16864d6134038d296b9e7135f7.jpg" alt="Moments" />
-        <div class="card-body">
-          <h4>😂Cat Memes</h4>
-          <p>Enjoy ,like and share your PAWs memes.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('memes');">Cat Memes →</button>
-        </div>
-      </div>
-
-      <div class="service-card" onclick="navigateToScreen('shelters')">
-        <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSI9IfTWzjSHOfiynaKuJaIR1pbZySZpuA6xA_GQCuW1mec4raOcNuh-R4q&s=10"
-          alt="Moments" />
-        <div class="card-body">
-          <h4>🏠Shelter</h4>
-          <p>Help find shelter for cats.They deserve a warm home too.</p>
-          <button class="nav-btn" onclick="event.stopPropagation(); navigateToScreen('shelters');">Shelters →</button>
-        </div>
+    <div class="service-card" onclick="navigateToScreen('shelters')">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSI9IfTWzjSHOfiynaKuJaIR1pbZySZpuA6xA_GQCuW1mec4raOcNuh-R4q&s=10" alt="Shelters">
+      <div class="card-body">
+        <h4>🏠 Shelter</h4>
+        <p>Help find shelter for cats. They deserve a warm home too.</p>
+        <button class="nav-btn" type="button" onclick="event.stopPropagation(); navigateToScreen('shelters');">Shelters →</button>
       </div>
     </div>
   </div>
+</section>
 
-  <script>
-    function navigateToScreen(screen) {
-      alert("navigate:" + screen);
+<footer class="footer">PawConnect • Adopt. Care. Connect.</footer>
+
+<script>
+  /* =====================================================
+     JavaFX navigation bridge
+     ===================================================== */
+  function navigateToScreen(screen) {
+    alert("navigate:" + screen);
+  }
+
+  function openFullMap() {
+    // Existing HomeController already understands navigate: commands.
+    alert("navigate:map");
+  }
+
+  /* =====================================================
+     Initial state supplied by HomeController.java
+     ===================================================== */
+  const isMapVisible = ${IS_MAP_VISIBLE};
+  const initLat = Number('${USER_LAT}');
+  const initLon = Number('${USER_LON}');
+
+  let miniMap = null;
+  let miniMapTileLayer = null;
+  let miniUserMarker = null;
+  let currentLat = 0;
+  let currentLon = 0;
+  let currentAddress = "";
+
+  /*
+   * Critical JavaFX WebView workaround.
+   * Disable Leaflet's 3D transform path before the map is created.
+   */
+  if (window.L && L.Browser) {
+    L.Browser.any3d = false;
+  }
+
+  const POPULAR_LOCATIONS = {
+    "Dhanmondi": { lat: 23.7465, lng: 90.3760 },
+    "Uttara":    { lat: 23.8759, lng: 90.3795 },
+    "Banani":    { lat: 23.7937, lng: 90.4066 },
+    "Gulshan":   { lat: 23.7925, lng: 90.4078 },
+    "Mohakhali": { lat: 23.7776, lng: 90.4054 }
+  };
+
+  function validCoordinate(lat, lng) {
+    return Number.isFinite(lat) &&
+            Number.isFinite(lng) &&
+            lat !== 0 &&
+            lng !== 0;
+  }
+
+  /* =====================================================
+     Mini-map creation
+     ===================================================== */
+  function ensureMiniMap() {
+    if (miniMap) {
+      return;
     }
 
-    window.onerror = function(message, source, lineno, colno, error) {
-      alert("error: " + message + " at " + source + ":" + lineno);
-    };
-    var originalConsoleError = console.error;
-    console.error = function() {
-      alert("error: " + Array.from(arguments).join(" "));
-      originalConsoleError.apply(console, arguments);
-    };
+    miniMap = L.map("miniMap", {
+      zoomControl: true,
+      attributionControl: true,
+      zoomAnimation: false,
+      fadeAnimation: false,
+      markerZoomAnimation: false,
+      inertia: false,
+      dragging: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: false,
+      keyboard: false,
+      touchZoom: false
+    });
 
-    var isMapVisible = ${IS_MAP_VISIBLE};
-
-    var initLat = parseFloat('${USER_LAT}') || 0;
-    var initLon = parseFloat('${USER_LON}') || 0;
-    if (!initLat || !initLon || (initLat === 0 && initLon === 0)) {
-      initLat = 23.8103;
-      initLon = 90.4125;
-    }
-
-    const googleApiKey = "AIzaSyAGu0YXmo6JsY7xS_k4eQmi1Jv6vPRirLQ";
-
-    function updateStaticMap(lat, lng) {
-      const mapImg = document.getElementById('map');
-      
-      // User marker (Red)
-      let markers = `markers=color:red%7C${lat},${lng}`;
-      
-      // Nearby mock shops/vets (Green)
-      markers += `&markers=color:green%7Csize:mid%7C${lat + 0.003},${lng + 0.004}`;
-      markers += `&markers=color:green%7Csize:mid%7C${lat - 0.004},${lng + 0.002}`;
-      markers += `&markers=color:green%7Csize:mid%7C${lat + 0.001},${lng - 0.005}`;
-
-      const staticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=14&size=500x250&scale=2&maptype=roadmap&${markers}&key=${googleApiKey}`;
-      mapImg.src = staticUrl;
-      mapImg.style.display = 'block';
-      document.getElementById('popularSection').style.display = 'none';
-    }
-
-    window.onload = function() {
-      if (isMapVisible) {
-        updateStaticMap(initLat, initLon);
-      }
-
-      // Show location dialog if no address is set
-      setTimeout(function () {
-        if (document.getElementById('address-input').value.trim() === '') {
-          document.getElementById('locationDialog').style.display = 'flex';
-        }
-      }, 1000);
-    };
-
-    function googleGeocode(lat, lng) {
-      // Use Google Geocoding API for exact reverse geocoding
-      fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleApiKey}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.status === 'OK' && data.results && data.results.length > 0) {
-            let addr = '';
-            let components = data.results[0].address_components;
-            let specificArea = components.find(c => c.types.includes('neighborhood') || c.types.includes('sublocality_level_1') || c.types.includes('sublocality') || c.types.includes('administrative_area_level_3'));
-            let city = components.find(c => c.types.includes('locality') || c.types.includes('administrative_area_level_2'));
-
-            if (specificArea && city && specificArea.long_name !== city.long_name) {
-              addr = specificArea.long_name + ", " + city.long_name;
-            } else if (specificArea) {
-              addr = specificArea.long_name;
-            } else {
-              addr = data.results[0].formatted_address.split(',')[0];
+    miniMapTileLayer = L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+              minZoom: 10,
+              maxZoom: 19,
+              tileSize: 256,
+              zoomOffset: 0,
+              updateWhenIdle: true,
+              updateWhenZooming: false,
+              keepBuffer: 2,
+              attribution: "&copy; OpenStreetMap contributors"
             }
+    );
 
-            document.getElementById('address-input').value = addr;
-            setTimeout(function () { alert('selectLocation:' + addr); }, 150);
-          }
-        });
+    miniMapTileLayer.addTo(miniMap);
+  }
+
+  function refreshMiniMap() {
+    if (!miniMap) {
+      return;
     }
 
-    function setAddress(loc) { document.getElementById('address-input').value = loc; }
+    try {
+      // Recalculate Leaflet's layout only.
+      // IMPORTANT: do NOT call miniMapTileLayer.redraw() here.
+      // Repeated redraws re-request the same OSM tiles and can trigger
+      // OpenStreetMap's abuse protection.
+      miniMap.invalidateSize({ animate: false, pan: false });
+    } catch (e) {
+      console.log("Mini-map refresh failed:", e);
+    }
+  }
 
-    function submitLocation() {
-      var loc = document.getElementById('address-input').value;
-      if (loc.trim() === '') return;
+  function showMiniMap(lat, lng, address) {
+    lat = Number(lat);
+    lng = Number(lng);
 
-      // Geocode using Google Geocoding API
-      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(loc + ', Bangladesh')}&key=${googleApiKey}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.status === 'OK' && data.results && data.results.length > 0) {
-            var lat = data.results[0].geometry.location.lat;
-            var lng = data.results[0].geometry.location.lng;
-            
-            // Update the embedded static map
-            updateStaticMap(lat, lng);
-            
-            // Send exact coordinates to Java to open the Real Google Map
-            alert('openRealMap:' + lat + ',' + lng + ',' + encodeURIComponent(loc));
-          } else {
-            alert("Could not find location: " + loc);
-          }
-        })
-        .catch(e => {
-          alert("error: Fetch failed in submitLocation - " + e.message);
-        });
+    if (!validCoordinate(lat, lng)) {
+      return;
     }
 
-    function doLocateMe() { document.getElementById('locationDialog').style.display = 'flex'; }
-    function closeLocationDialog() { document.getElementById('locationDialog').style.display = 'none'; }
+    currentLat = lat;
+    currentLon = lng;
+    currentAddress = String(address || "Selected Location");
 
-    function allowLocation() {
-      document.getElementById('locationDialog').style.display = 'none';
-      document.getElementById('address-input').value = 'Locating...';
-      document.getElementById('map').style.display = 'block';
-      document.getElementById('popularSection').style.display = 'none';
-      setTimeout(function() { map.invalidateSize(); }, 150);
+    const wrap = document.getElementById("miniMapWrap");
+    const status = document.getElementById("locationStatus");
 
-      // Ask Java backend to fetch OS-level exact coordinates
-      alert('getExactLocation');
+    /* Show the correctly-sized wrapper BEFORE creating Leaflet. */
+    wrap.style.display = "block";
+
+    if (status) {
+      status.style.display = "block";
+      status.textContent = "📍 " + currentAddress;
     }
 
-    const handleFallback = (bssids) => {
-      document.getElementById('address-input').value = 'Locating via Google...';
-      
-      let reqBody = { considerIp: true };
-      if (bssids && bssids.trim() !== "") {
-        reqBody.wifiAccessPoints = bssids.split(',').map(mac => ({ macAddress: mac }));
-      }
+    /* JavaFX needs a short layout pass after display:block. */
+    setTimeout(function() {
+      ensureMiniMap();
 
-      fetch(`https://www.googleapis.com/geolocation/v1/geolocate?key=${googleApiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reqBody)
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (!data || !data.location) throw new Error("Invalid loc");
-          var lat = data.location.lat;
-          var lon = data.location.lng;
-          updateStaticMap(lat, lon);
-          googleGeocode(lat, lon);
-        }).catch(e => {
-          document.getElementById('address-input').value = 'Location fallback (Dhaka)';
-          var lat = 23.8103, lon = 90.4125;
-          updateStaticMap(lat, lon);
-          googleGeocode(lat, lon);
-        });
-    };
+      miniMap.setView([lat, lng], 15, { animate: false });
 
-    window.exactLocationCallback = function(lat, lon, bssids) {
-      if (lat !== null && lon !== null && !isNaN(lat) && lat !== 0) {
-        updateStaticMap(lat, lon);
-        googleGeocode(lat, lon);
+      if (miniUserMarker) {
+        miniUserMarker.setLatLng([lat, lng]);
       } else {
-        handleFallback(bssids);
+        const userIcon = L.divIcon({
+          className: "",
+          html:
+                  '<div style="' +
+                  'width:38px;' +
+                  'height:38px;' +
+                  'display:flex;' +
+                  'align-items:center;' +
+                  'justify-content:center;' +
+                  'background:#0984e3;' +
+                  'border-radius:50%;' +
+                  'border:3px solid white;' +
+                  'box-shadow:0 2px 8px rgba(0,0,0,.30);' +
+                  'font-size:19px;' +
+                  '">📍</div>',
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+          popupAnchor: [0, -22]
+        });
+
+        miniUserMarker = L.marker([lat, lng], {
+          icon: userIcon,
+          zIndexOffset: 1000
+        })
+                .addTo(miniMap)
+                .bindPopup("<strong>📍 Your location</strong>");
       }
-    };
-  </script>
+
+      refreshMiniMap();
+      setTimeout(refreshMiniMap, 120);
+      setTimeout(refreshMiniMap, 350);
+      setTimeout(refreshMiniMap, 800);
+    }, 100);
+  }
+
+  function hideMiniMap() {
+    const wrap = document.getElementById("miniMapWrap");
+    const status = document.getElementById("locationStatus");
+
+    if (wrap) {
+      wrap.style.display = "none";
+    }
+
+    if (status) {
+      status.style.display = "none";
+      status.textContent = "";
+    }
+  }
+
+  function handleAddressInput(value) {
+    if (String(value || "").trim() === "") {
+      hideMiniMap();
+    }
+  }
+
+  window.addEventListener("resize", function() {
+    if (miniMap) {
+      setTimeout(refreshMiniMap, 100);
+    }
+  });
+
+  /* =====================================================
+     Save location into Java Session
+
+     This matches the locationSelected bridge added earlier.
+     If your HomeController has that handler, it stores lat/lon.
+     ===================================================== */
+  function saveSelectedLocation(lat, lng, address) {
+    alert(
+            "locationSelected:" +
+            lat + "," +
+            lng + "," +
+            encodeURIComponent(address || "Selected Location")
+    );
+  }
+
+  /* =====================================================
+     Popular location buttons
+     These do NOT depend on Google/Nominatim.
+     ===================================================== */
+  function setAddress(name) {
+    const point = POPULAR_LOCATIONS[name];
+    if (!point) {
+      return;
+    }
+
+    document.getElementById("address-input").value = name;
+    showMiniMap(point.lat, point.lng, name);
+    saveSelectedLocation(point.lat, point.lng, name);
+  }
+
+  /* =====================================================
+     Manual address search with OpenStreetMap Nominatim
+     ===================================================== */
+  function submitLocation() {
+    const input = document.getElementById("address-input");
+    const query = input.value.trim();
+
+    if (query === "") {
+      return;
+    }
+
+    /* If they typed a popular area exactly, use fixed coordinates. */
+    if (POPULAR_LOCATIONS[query]) {
+      setAddress(query);
+      return;
+    }
+
+    const status = document.getElementById("locationStatus");
+    if (status) {
+      status.style.display = "block";
+      status.textContent = "Searching for " + query + "...";
+    }
+
+    fetch(
+            "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=bd&q=" +
+            encodeURIComponent(query + ", Dhaka, Bangladesh")
+    )
+            .then(function(response) {
+              if (!response.ok) {
+                throw new Error("Location search request failed");
+              }
+              return response.json();
+            })
+            .then(function(results) {
+              if (!Array.isArray(results) || results.length === 0) {
+                throw new Error("Could not find location: " + query);
+              }
+
+              const lat = Number(results[0].lat);
+              const lng = Number(results[0].lon);
+
+              if (!validCoordinate(lat, lng)) {
+                throw new Error("Invalid location returned");
+              }
+
+              showMiniMap(lat, lng, query);
+              saveSelectedLocation(lat, lng, query);
+            })
+            .catch(function(error) {
+              console.log("Address search failed:", error);
+              if (status) {
+                status.style.display = "block";
+                status.textContent = "Could not find that address. Try a Dhaka area or use a Popular Location.";
+              }
+            });
+  }
+
+  /* =====================================================
+     Locate Me
+     ===================================================== */
+  function doLocateMe() {
+    document.getElementById("locationDialog").style.display = "flex";
+  }
+
+  function closeLocationDialog() {
+    document.getElementById("locationDialog").style.display = "none";
+  }
+
+  function allowLocation() {
+    document.getElementById("locationDialog").style.display = "none";
+    document.getElementById("address-input").value = "Locating...";
+
+    const status = document.getElementById("locationStatus");
+    if (status) {
+      status.style.display = "block";
+      status.textContent = "Finding your current location...";
+    }
+
+    /* HomeController.java handles this command using Windows Location Service. */
+    alert("getExactLocation");
+  }
+
+  function reverseGeocode(lat, lng) {
+    fetch(
+            "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" +
+            encodeURIComponent(lat) +
+            "&lon=" +
+            encodeURIComponent(lng)
+    )
+            .then(function(response) {
+              if (!response.ok) {
+                throw new Error("Reverse geocoding failed");
+              }
+              return response.json();
+            })
+            .then(function(data) {
+              const a = data && data.address ? data.address : {};
+              const area =
+                      a.neighbourhood ||
+                      a.suburb ||
+                      a.quarter ||
+                      a.city_district ||
+                      a.town ||
+                      a.city ||
+                      "Current Location";
+
+              document.getElementById("address-input").value = area;
+              currentAddress = area;
+
+              const status = document.getElementById("locationStatus");
+              if (status) {
+                status.textContent = "📍 " + area;
+              }
+
+              saveSelectedLocation(lat, lng, area);
+            })
+            .catch(function() {
+              document.getElementById("address-input").value = "Current Location";
+              saveSelectedLocation(lat, lng, "Current Location");
+            });
+  }
+
+  /* Called by HomeController.java. */
+  window.exactLocationCallback = function(lat, lon, bssids) {
+    lat = Number(lat);
+    lon = Number(lon);
+
+    if (validCoordinate(lat, lon)) {
+      showMiniMap(lat, lon, "Current Location");
+      saveSelectedLocation(lat, lon, "Current Location");
+      reverseGeocode(lat, lon);
+      return;
+    }
+
+    /* OS location unavailable: keep UI usable and tell the user. */
+    document.getElementById("address-input").value = "";
+
+    const status = document.getElementById("locationStatus");
+    if (status) {
+      status.style.display = "block";
+      status.textContent = "Could not detect your location. Choose a Popular Location or enter an address.";
+    }
+  };
+
+  /* =====================================================
+     Initial page load
+     ===================================================== */
+  window.onload = function() {
+    const input = document.getElementById("address-input");
+    const address = input ? input.value.trim() : "";
+
+    /*
+     * Do NOT invent a Dhaka coordinate here.
+     * The map appears only if HomeController supplied a real saved coordinate.
+     */
+    if (
+            isMapVisible === true &&
+            validCoordinate(initLat, initLon) &&
+            address !== ""
+    ) {
+      showMiniMap(initLat, initLon, address);
+    } else {
+      hideMiniMap();
+    }
+
+    /* Only show the permission dialog when no location is already selected. */
+    setTimeout(function() {
+      if (input && input.value.trim() === "") {
+        document.getElementById("locationDialog").style.display = "flex";
+      }
+    }, 900);
+  };
+</script>
 </body>
 </html>

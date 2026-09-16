@@ -6,6 +6,7 @@ import com.catconnect.repository.*;
 import com.catconnect.service.CatalogContentService;
 import com.catconnect.service.DonationService;
 import com.catconnect.service.LostFoundService;
+import com.catconnect.service.NotificationService;
 import com.catconnect.service.UserContentService;
 import com.catconnect.util.LikeCounter;
 import jakarta.validation.Valid;
@@ -32,6 +33,14 @@ public class ResourceControllers {
     private final LostFoundService lostFoundService;
     private final UserContentService userContentService;
     private final CatalogContentService catalogContentService;
+    private final com.catconnect.repository.UserRepository userRepository;
+    private final NotificationService notificationService;
+
+    private String getDisplayName(Long userId) {
+        return userRepository.findById(userId)
+                .map(com.catconnect.entity.User::getDisplayName)
+                .orElse("Anonymous");
+    }
 
     @GetMapping("/api/vets")
     public List<Vet> vets(@org.springframework.web.bind.annotation.RequestParam(required = false) String location) {
@@ -50,10 +59,17 @@ public class ResourceControllers {
     }
 
     @PostMapping("/api/vets/{id}/react")
-    public Vet reactVet(@PathVariable Long id) {
+    public Vet reactVet(@PathVariable Long id, Authentication auth) {
         Vet vet = vetRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Vet not found"));
-        vet.setLikes(LikeCounter.next(vet.getLikes()));
+        Long userId = (Long) auth.getPrincipal();
+        if (vet.getLikedBy().contains(userId)) {
+            vet.getLikedBy().remove(userId);
+            vet.setLikes(Math.max(0, vet.getLikes() - 1));
+        } else {
+            vet.getLikedBy().add(userId);
+            vet.setLikes(vet.getLikes() + 1);
+        }
         return vetRepository.save(vet);
     }
 
@@ -63,10 +79,17 @@ public class ResourceControllers {
     }
 
     @PostMapping("/api/shops/{id}/react")
-    public CatShop reactShop(@PathVariable Long id) {
+    public CatShop reactShop(@PathVariable Long id, Authentication auth) {
         CatShop shop = catShopRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Shop not found"));
-        shop.setLikes(LikeCounter.next(shop.getLikes()));
+        Long userId = (Long) auth.getPrincipal();
+        if (shop.getLikedBy().contains(userId)) {
+            shop.getLikedBy().remove(userId);
+            shop.setLikes(Math.max(0, shop.getLikes() - 1));
+        } else {
+            shop.getLikedBy().add(userId);
+            shop.setLikes(shop.getLikes() + 1);
+        }
         return catShopRepository.save(shop);
     }
 
@@ -76,10 +99,17 @@ public class ResourceControllers {
     }
 
     @PostMapping("/api/shelters/{id}/react")
-    public Shelter reactShelter(@PathVariable Long id) {
+    public Shelter reactShelter(@PathVariable Long id, Authentication auth) {
         Shelter shelter = shelterRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Shelter not found"));
-        shelter.setLikes(LikeCounter.next(shelter.getLikes()));
+        Long userId = (Long) auth.getPrincipal();
+        if (shelter.getLikedBy().contains(userId)) {
+            shelter.getLikedBy().remove(userId);
+            shelter.setLikes(Math.max(0, shelter.getLikes() - 1));
+        } else {
+            shelter.getLikedBy().add(userId);
+            shelter.setLikes(shelter.getLikes() + 1);
+        }
         return shelterRepository.save(shelter);
     }
 
@@ -99,16 +129,23 @@ public class ResourceControllers {
     }
 
     @PostMapping("/api/memes/{id}/like")
-    public CatMeme likeMeme(@PathVariable Long id) {
+    public CatMeme likeMeme(@PathVariable Long id, Authentication auth) {
         CatMeme meme = catMemeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Meme not found"));
-        meme.setLikes(LikeCounter.next(meme.getLikes()));
+        Long userId = (Long) auth.getPrincipal();
+        if (meme.getLikedBy().contains(userId)) {
+            meme.getLikedBy().remove(userId);
+            meme.setLikes(Math.max(0, meme.getLikes() - 1));
+        } else {
+            meme.getLikedBy().add(userId);
+            meme.setLikes(meme.getLikes() + 1);
+        }
         return catMemeRepository.save(meme);
     }
 
     @PostMapping("/api/memes/{id}/react")
-    public CatMeme reactMeme(@PathVariable Long id) {
-        return likeMeme(id);
+    public CatMeme reactMeme(@PathVariable Long id, Authentication auth) {
+        return likeMeme(id, auth);
     }
 
     @DeleteMapping("/api/memes/{id}")
@@ -127,13 +164,13 @@ public class ResourceControllers {
 
     @GetMapping("/api/adoptions")
     public List<AdoptionListing> adoptions() {
-        return adoptionListingRepository.findByStatus("AVAILABLE");
+        return userContentService.getAllActiveAdoptions();
     }
 
     @PostMapping("/api/adoptions")
     public AdoptionListing createAdoption(@Valid @RequestBody AdoptionRequest request, Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return adoptionListingRepository.save(AdoptionListing.builder()
+        AdoptionListing listing = adoptionListingRepository.save(AdoptionListing.builder()
                 .userId(userId)
                 .catName(request.getCatName())
                 .breed(request.getBreed())
@@ -142,14 +179,26 @@ public class ResourceControllers {
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
                 .shelterId(request.getShelterId())
+                .location(request.getLocation())
+                .address(request.getAddress())
+                .contactPhone(request.getContactPhone())
                 .build());
+        listing.setSenderName(getDisplayName(userId));
+        return listing;
     }
 
     @PostMapping("/api/adoptions/{id}/react")
-    public AdoptionListing reactAdoption(@PathVariable Long id) {
+    public AdoptionListing reactAdoption(@PathVariable Long id, Authentication auth) {
         AdoptionListing listing = adoptionListingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
-        listing.setLikes(LikeCounter.next(listing.getLikes()));
+        Long userId = (Long) auth.getPrincipal();
+        if (listing.getLikedBy().contains(userId)) {
+            listing.getLikedBy().remove(userId);
+            listing.setLikes(Math.max(0, listing.getLikes() - 1));
+        } else {
+            listing.getLikedBy().add(userId);
+            listing.setLikes(listing.getLikes() + 1);
+        }
         return adoptionListingRepository.save(listing);
     }
 
@@ -164,7 +213,9 @@ public class ResourceControllers {
     public AdoptionListing updateAdoption(@PathVariable Long id, @RequestBody AdoptionUpdateRequest request,
                                           Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return userContentService.updateAdoption(id, userId, request);
+        AdoptionListing listing = userContentService.updateAdoption(id, userId, request);
+        listing.setSenderName(getDisplayName(userId));
+        return listing;
     }
 
     @GetMapping("/api/lost-found")
@@ -176,7 +227,7 @@ public class ResourceControllers {
     @PostMapping("/api/lost-found")
     public LostFoundPost createLostFound(@Valid @RequestBody LostFoundRequest request, Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return lostFoundPostRepository.save(LostFoundPost.builder()
+        LostFoundPost post = lostFoundPostRepository.save(LostFoundPost.builder()
                 .userId(userId)
                 .postType(request.getPostType())
                 .catDescription(request.getCatDescription())
@@ -185,13 +236,22 @@ public class ResourceControllers {
                 .imageUrl(request.getImageUrl())
                 .mapLink(request.getMapLink())
                 .build());
+        post.setSenderName(getDisplayName(userId));
+        return post;
     }
 
     @PostMapping("/api/lost-found/{id}/react")
-    public LostFoundPost reactLostFound(@PathVariable Long id) {
+    public LostFoundPost reactLostFound(@PathVariable Long id, Authentication auth) {
         LostFoundPost post = lostFoundPostRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
-        post.setLikes(LikeCounter.next(post.getLikes()));
+        Long userId = (Long) auth.getPrincipal();
+        if (post.getLikedBy().contains(userId)) {
+            post.getLikedBy().remove(userId);
+            post.setLikes(Math.max(0, post.getLikes() - 1));
+        } else {
+            post.getLikedBy().add(userId);
+            post.setLikes(post.getLikes() + 1);
+        }
         return lostFoundPostRepository.save(post);
     }
 
@@ -206,7 +266,9 @@ public class ResourceControllers {
     public LostFoundPost updateLostFound(@PathVariable Long id, @RequestBody LostFoundUpdateRequest request,
                                          Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return lostFoundService.update(id, userId, request);
+        LostFoundPost post = lostFoundService.update(id, userId, request);
+        post.setSenderName(getDisplayName(userId));
+        return post;
     }
 
     @GetMapping("/api/moments")
@@ -244,10 +306,23 @@ public class ResourceControllers {
     }
 
     @PostMapping("/api/moments/{id}/react")
-    public CatMoment reactMoment(@PathVariable Long id) {
+    public CatMoment reactMoment(@PathVariable Long id, Authentication auth) {
         CatMoment moment = catMomentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Moment not found"));
-        moment.setLikes(LikeCounter.next(moment.getLikes()));
+        
+        Long userId = (Long) auth.getPrincipal();
+        if (moment.getLikedBy().contains(userId)) {
+            moment.getLikedBy().remove(userId);
+            moment.setLikes(Math.max(0, moment.getLikes() - 1));
+        } else {
+            moment.getLikedBy().add(userId);
+            moment.setLikes(moment.getLikes() + 1);
+            if (!moment.getUserId().equals(userId)) {
+                String reactorName = getDisplayName(userId);
+                notificationService.createNotification(moment.getUserId(), reactorName + " reacted to your post", "REACTION", userId);
+            }
+        }
+        
         return catMomentRepository.save(moment);
     }
 
@@ -267,13 +342,13 @@ public class ResourceControllers {
 
     @GetMapping("/api/donations")
     public List<DonationCampaign> campaigns() {
-        return donationCampaignRepository.findByStatus("ACTIVE");
+        return catalogContentService.getAllActiveCampaigns();
     }
 
     @PostMapping("/api/donations")
     public DonationCampaign createCampaign(@Valid @RequestBody CampaignRequest request, Authentication auth) {
         Long userId = (Long) auth.getPrincipal();
-        return donationCampaignRepository.save(DonationCampaign.builder()
+        DonationCampaign c = donationCampaignRepository.save(DonationCampaign.builder()
                 .userId(userId)
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -285,13 +360,19 @@ public class ResourceControllers {
                 .bankName(request.getBankName())
                 .mobileBanking(request.getMobileBanking())
                 .paymentInstructions(request.getPaymentInstructions())
+                .contactPhone(request.getContactPhone())
                 .build());
+        c.setSenderName(getDisplayName(userId));
+        return c;
     }
 
     @PutMapping("/api/donations/{id}")
     public DonationCampaign updateCampaign(@PathVariable Long id, @RequestBody CampaignUpdateRequest request,
                                            Authentication auth) {
-        return catalogContentService.updateCampaign(id, (Long) auth.getPrincipal(), request);
+        Long userId = (Long) auth.getPrincipal();
+        DonationCampaign c = catalogContentService.updateCampaign(id, userId, request);
+        c.setSenderName(getDisplayName(userId));
+        return c;
     }
 
     @DeleteMapping("/api/donations/{id}")
@@ -301,10 +382,17 @@ public class ResourceControllers {
     }
 
     @PostMapping("/api/donations/{id}/react")
-    public DonationCampaign reactCampaign(@PathVariable Long id) {
+    public DonationCampaign reactCampaign(@PathVariable Long id, Authentication auth) {
         DonationCampaign c = donationCampaignRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Campaign not found"));
-        c.setLikes(LikeCounter.next(c.getLikes()));
+        Long userId = (Long) auth.getPrincipal();
+        if (c.getLikedBy().contains(userId)) {
+            c.getLikedBy().remove(userId);
+            c.setLikes(Math.max(0, c.getLikes() - 1));
+        } else {
+            c.getLikedBy().add(userId);
+            c.setLikes(c.getLikes() + 1);
+        }
         return donationCampaignRepository.save(c);
     }
 

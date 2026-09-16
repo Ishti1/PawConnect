@@ -57,6 +57,19 @@ public class MomentsController {
 
     private Long activeMomentIdForComments;
 
+    private final java.util.Set<MomentCell> allCells = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
+
+    public void pauseAllVideos() {
+        for (MomentCell cell : allCells) {
+            if (cell.mediaPlayer != null && cell.mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                cell.mediaPlayer.pause();
+                if (cell.playPauseOverlay != null) {
+                    cell.playPauseOverlay.setVisible(true);
+                }
+            }
+        }
+    }
+
     // PawConnect color constants
     private static final String PRIMARY_COLOR = "#ff6b6b";
     private static final String DARK_BG = "#1a1a2e";
@@ -72,6 +85,12 @@ public class MomentsController {
     public void initialize() {
         feedListView.setCellFactory(param -> new MomentCell());
         feedListView.setStyle("-fx-background-color: #ff6b6b;");
+        
+        feedListView.sceneProperty().addListener((obs, oldS, newS) -> {
+            if (newS == null) {
+                pauseAllVideos();
+            }
+        });
         
         commentsListView.setCellFactory(param -> new ListCell<>() {
             @Override
@@ -162,14 +181,8 @@ public class MomentsController {
         Stage stage = (Stage) feedListView.getScene().getWindow();
         File file = chooser.showOpenDialog(stage);
         if (file != null) {
-            String name = file.getName().toLowerCase();
-            if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg")) {
-                uncroppedMediaFile = file;
-                openCropOverlay(file);
-            } else {
-                selectedMediaFile = file;
-                mediaLabel.setText("Selected: " + file.getName());
-            }
+            selectedMediaFile = file;
+            mediaLabel.setText("Selected: " + file.getName());
         }
     }
 
@@ -361,37 +374,39 @@ public class MomentsController {
         }).start();
     }
 
-    private void likeMoment(long id, Label likesLabel) {
-        // Optimistic UI update
-        try {
-            int current = Integer.parseInt(likesLabel.getText());
-            likesLabel.setText(String.valueOf(current + 1));
-        } catch (NumberFormatException ignored) {}
-
+    private void likeMoment(long id, Label likesLabel, Button likeBtn) {
+        likeBtn.setDisable(true);
         new Thread(() -> {
             try {
-                ApiClient.get().postJson("/moments/" + id + "/react", Map.of());
-                // No need to reload data, UI is already updated
+                JsonNode updated = ApiClient.get().postJson("/moments/" + id + "/react", Map.of());
+                int newLikes = updated.path("likes").asInt();
+                Platform.runLater(() -> {
+                    likesLabel.setText(String.valueOf(newLikes));
+                    likeBtn.setDisable(false);
+                });
             } catch (Exception ex) {
-                Platform.runLater(() -> UiHelper.showError(ex.getMessage()));
+                Platform.runLater(() -> {
+                    UiHelper.showError(ex.getMessage());
+                    likeBtn.setDisable(false);
+                });
             }
         }).start();
     }
 
     /**
-     * Full-screen Instagram Reels style cell.
+     * Facebook style cell.
      * 
-     * Each post takes the FULL height/width of the feed area.
-     * Image fills the entire cell as background.
-     * Username + caption overlay at bottom-left.
-     * Action buttons (heart, comment, share) overlay at bottom-right.
+     * Each post has a fixed width of 500px.
+     * Image maintains aspect ratio and fits inside the width.
      */
     private class MomentCell extends ListCell<JsonNode> {
-        private final HBox root;
+        private final HBox cellRoot;
+        private final VBox card;
         private final StackPane mediaContainer;
         private MediaPlayer mediaPlayer;
         private MediaView mediaView;
-        private final Pane imagePane;
+        private final ImageView imageView;
+        private final StackPane playPauseOverlay;
         private final Label captionLabel;
         private final Label usernameLabel;
         private final Label likesLabel;
@@ -402,95 +417,125 @@ public class MomentsController {
         private final Button deleteBtn;
         
         public MomentCell() {
-            // Desktop Instagram layout: Centered media container, actions on the right
-            root = new HBox(16); // Spacing between media and actions
-            root.setAlignment(Pos.CENTER);
-            root.setStyle("-fx-background-color: transparent; -fx-padding: 20 0;");
+            cellRoot = new HBox();
+            cellRoot.setAlignment(Pos.CENTER);
+            cellRoot.setStyle("-fx-background-color: transparent; -fx-padding: 12 0;");
+
+            card = new VBox(12);
+            card.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1);");
+            card.setMaxWidth(500);
+            card.setPrefWidth(500);
+            card.setPadding(new Insets(16));
+
+            // Header
+            HBox header = new HBox(10);
+            header.setAlignment(Pos.CENTER_LEFT);
             
-            mediaContainer = new StackPane();
-            mediaContainer.setStyle("-fx-background-color: #000000; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 4);");
-            
-            // Clip for rounded corners
-            Rectangle clip = new Rectangle();
-            clip.setArcWidth(24);
-            clip.setArcHeight(24);
-            mediaContainer.setClip(clip);
-            
-            // --- Image (fills entire cell using cover) ---
-            imagePane = new Pane();
-            
-            // --- Video ---
-            mediaView = new MediaView();
-            mediaView.setPreserveRatio(true);
-            
-            // --- "No image" placeholder ---
-            noImageLabel = new Label("🐱");
-            noImageLabel.setStyle("-fx-font-size: 80px; -fx-text-fill: #333333;");
-            noImageLabel.setAlignment(Pos.CENTER);
-            StackPane.setAlignment(noImageLabel, Pos.CENTER);
-            
-            // --- Bottom-left overlay: username + caption ---
-            VBox bottomLeft = new VBox(4);
-            bottomLeft.setAlignment(Pos.BOTTOM_LEFT);
-            bottomLeft.setPickOnBounds(false);
-            bottomLeft.setPadding(new Insets(0, 16, 20, 16));
-            bottomLeft.setMaxHeight(Region.USE_PREF_SIZE);
+            javafx.scene.shape.Circle profileBubble = new javafx.scene.shape.Circle(18, javafx.scene.paint.Color.web(PRIMARY_COLOR));
             
             usernameLabel = new Label();
-            usernameLabel.setStyle(
-                "-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 6, 0.6, 0, 1);");
+            usernameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c1e21;");
             
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            
+            deleteBtn = new Button("✕");
+            deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #606770; -fx-font-size: 14px; -fx-cursor: hand;");
+            
+            header.getChildren().addAll(profileBubble, usernameLabel, spacer, deleteBtn);
+
+            // Caption
             captionLabel = new Label();
-            captionLabel.setStyle(
-                "-fx-text-fill: #eeeeee; -fx-font-size: 14px; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 6, 0.6, 0, 1);");
+            captionLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #1c1e21;");
             captionLabel.setWrapText(true);
-            captionLabel.setMaxWidth(350);
+
+            // Media Container
+            mediaContainer = new StackPane();
+            mediaContainer.setStyle("-fx-background-color: #f0f2f5; -fx-background-radius: 4;");
             
-            // Profile bubble and username
-            HBox userBox = new HBox(8);
-            userBox.setAlignment(Pos.CENTER_LEFT);
-            javafx.scene.shape.Circle profileBubble = new javafx.scene.shape.Circle(14, javafx.scene.paint.Color.WHITE);
-            profileBubble.setStroke(javafx.scene.paint.Color.web("#eeeeee"));
-            profileBubble.setStrokeWidth(1.5);
-            // Optional: add a tiny cat icon or first letter inside the bubble
-            // For now, just a white circle bubble
-            userBox.getChildren().addAll(profileBubble, usernameLabel);
+            imageView = new ImageView();
+            imageView.setPreserveRatio(true);
+            imageView.setFitWidth(468); // 500 - 32 padding
             
-            bottomLeft.getChildren().addAll(userBox, captionLabel);
-            StackPane.setAlignment(bottomLeft, Pos.BOTTOM_LEFT);
+            mediaView = new MediaView();
+            mediaView.setPreserveRatio(true);
+            mediaView.setFitWidth(468);
             
-            // Add elements to media container
-            mediaContainer.getChildren().addAll(imagePane, mediaView, noImageLabel, bottomLeft);
+            noImageLabel = new Label("🐱");
+            noImageLabel.setStyle("-fx-font-size: 48px; -fx-text-fill: #bcc0c4;");
             
-            // --- Right side actions: Like, Comment, Share, Delete ---
-            VBox actionsColumn = new VBox(22);
-            actionsColumn.setAlignment(Pos.BOTTOM_CENTER);
-            actionsColumn.setPadding(new Insets(0, 0, 20, 0));
-            actionsColumn.setPickOnBounds(false);
-            actionsColumn.setMaxWidth(Region.USE_PREF_SIZE);
+            playPauseOverlay = new StackPane();
+            playPauseOverlay.setStyle("-fx-background-color: rgba(0,0,0,0.3); -fx-background-radius: 4;");
+            Label playIcon = new Label("▶");
+            playIcon.setStyle("-fx-text-fill: white; -fx-font-size: 48px;");
+            playPauseOverlay.getChildren().add(playIcon);
+            playPauseOverlay.setVisible(false);
+
+            mediaContainer.getChildren().addAll(imageView, mediaView, playPauseOverlay, noImageLabel);
+
+            mediaContainer.setOnMouseClicked(e -> {
+                if (mediaPlayer != null) {
+                    if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                        mediaPlayer.pause();
+                        playPauseOverlay.setVisible(true);
+                    } else {
+                        mediaPlayer.play();
+                        playPauseOverlay.setVisible(false);
+                    }
+                }
+            });
+
+            // Footer
+            HBox footer = new HBox(20);
+            footer.setAlignment(Pos.CENTER_LEFT);
+            footer.setPadding(new Insets(4, 0, 0, 0));
             
             likeBtn = new Button("♥");
-            likeBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #ff6b6b; -fx-font-size: 22px; -fx-cursor: hand; -fx-background-radius: 50; -fx-min-width: 44; -fx-min-height: 44; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);");
             likesLabel = new Label("0");
-            likesLabel.setStyle("-fx-text-fill: #555555; -fx-font-size: 12px; -fx-font-weight: bold;");
-            VBox likeBox = new VBox(4, likeBtn, likesLabel);
-            likeBox.setAlignment(Pos.CENTER);
+            likesLabel.setStyle("-fx-text-fill: #606770; -fx-font-weight: bold; -fx-font-size: 14px;");
+            HBox likeBox = new HBox(6, likeBtn, likesLabel);
+            likeBox.setAlignment(Pos.CENTER_LEFT);
             
-            commentBtn = new Button("💬");
-            commentBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-font-size: 20px; -fx-cursor: hand; -fx-background-radius: 50; -fx-min-width: 44; -fx-min-height: 44; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);");
+            commentBtn = new Button("💬 Comment");
+            shareBtn = new Button("➤ Share");
             
-            shareBtn = new Button("➤");
-            shareBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #333333; -fx-font-size: 20px; -fx-cursor: hand; -fx-background-radius: 50; -fx-min-width: 44; -fx-min-height: 44; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);");
+            String actionBtnStyle = "-fx-background-color: transparent; -fx-text-fill: #606770; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 4 8;";
+            likeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + PRIMARY_COLOR + "; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 2 4;");
+            commentBtn.setStyle(actionBtnStyle);
+            shareBtn.setStyle(actionBtnStyle);
             
-            deleteBtn = new Button("🗑");
-            deleteBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: " + PRIMARY_COLOR + "; -fx-font-size: 20px; -fx-cursor: hand; -fx-background-radius: 50; -fx-min-width: 44; -fx-min-height: 44; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);");
+            footer.getChildren().addAll(likeBox, commentBtn, shareBtn);
+
+            card.getChildren().addAll(header, captionLabel, mediaContainer, footer);
+            cellRoot.getChildren().add(card);
             
-            actionsColumn.getChildren().addAll(likeBox, commentBtn, shareBtn, deleteBtn);
+            allCells.add(this);
             
-            // Add container and actions to root HBox
-            root.getChildren().addAll(mediaContainer, actionsColumn);
+            sceneProperty().addListener((obs, oldS, newS) -> {
+                if (newS == null && mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                    mediaPlayer.pause();
+                    playPauseOverlay.setVisible(true);
+                }
+            });
+            
+            layoutYProperty().addListener((obs, oldY, newY) -> checkVisibility());
+            boundsInParentProperty().addListener((obs, oldB, newB) -> checkVisibility());
+        }
+        
+        private void checkVisibility() {
+            if (mediaPlayer == null || mediaPlayer.getStatus() != MediaPlayer.Status.PLAYING) return;
+            
+            javafx.scene.Parent parent = getParent();
+            if (parent != null) {
+                double y = getLayoutY() + getTranslateY();
+                double cellH = getHeight();
+                double viewH = parent.getLayoutBounds().getHeight();
+                
+                if (y < -cellH * 0.5 || y > viewH - cellH * 0.5) {
+                    mediaPlayer.pause();
+                    playPauseOverlay.setVisible(true);
+                }
+            }
         }
         
         @Override
@@ -527,49 +572,34 @@ public class MomentsController {
                 captionLabel.setText(caption);
                 likesLabel.setText(String.valueOf(likes));
                 
-                // Container dimensions
-                double cellW = feedListView.getWidth();
-                double cellH = feedListView.getHeight();
-                
-                // On very first load, getHeight might be 0, so fallback to a reasonable default
-                if (cellH < 100) cellH = 600;
-                
-                root.setMinHeight(cellH);
-                root.setPrefHeight(cellH);
-                root.setMaxHeight(cellH);
-                
-                // Allow width to fit naturally, but center elements
-                root.setMaxWidth(Double.MAX_VALUE);
-                
-                // Instagram desktop Reels ratio is about 9:16, max width ~ 350-400
-                double mediaHeight = cellH - 40; // 20px padding top/bottom
-                double mediaWidth = Math.min(mediaHeight * 9.0 / 16.0, 420);
-                
-                mediaContainer.setMinSize(mediaWidth, mediaHeight);
-                mediaContainer.setPrefSize(mediaWidth, mediaHeight);
-                mediaContainer.setMaxSize(mediaWidth, mediaHeight);
-                
-                ((Rectangle) mediaContainer.getClip()).setWidth(mediaWidth);
-                ((Rectangle) mediaContainer.getClip()).setHeight(mediaHeight);
-                
+                // Hide caption if empty
+                if (caption.isBlank()) {
+                    captionLabel.setVisible(false);
+                    captionLabel.setManaged(false);
+                } else {
+                    captionLabel.setVisible(true);
+                    captionLabel.setManaged(true);
+                }
+
                 String resolvedUrl = ImageUrlHelper.resolve(url);
                 boolean hasMedia = resolvedUrl != null && !resolvedUrl.isEmpty() 
                                    && !resolvedUrl.equals(ImageUrlHelper.resolve(""));
                 
                 if ("VIDEO".equalsIgnoreCase(mediaType) && hasMedia) {
-                    imagePane.setVisible(false);
-                    imagePane.setManaged(false);
+                    imageView.setVisible(false);
+                    imageView.setManaged(false);
                     mediaView.setVisible(true);
                     mediaView.setManaged(true);
                     noImageLabel.setVisible(false);
+                    playPauseOverlay.setVisible(false);
+                    mediaContainer.setVisible(true);
+                    mediaContainer.setManaged(true);
                     
                     try {
                         Media media = new Media(resolvedUrl);
                         mediaPlayer = new MediaPlayer(media);
                         mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                         mediaView.setMediaPlayer(mediaPlayer);
-                        mediaView.setFitWidth(mediaWidth);
-                        mediaView.setFitHeight(mediaHeight);
                         mediaPlayer.play();
                     } catch (Exception e) {
                         System.err.println("Video error: " + e.getMessage());
@@ -578,30 +608,27 @@ public class MomentsController {
                 } else if (hasMedia) {
                     mediaView.setVisible(false);
                     mediaView.setManaged(false);
-                    imagePane.setVisible(true);
-                    imagePane.setManaged(true);
+                    imageView.setVisible(true);
+                    imageView.setManaged(true);
                     noImageLabel.setVisible(false);
+                    playPauseOverlay.setVisible(false);
+                    mediaContainer.setVisible(true);
+                    mediaContainer.setManaged(true);
                     
-                    // Load image securely using robust HTTP client to bypass CDNs blocking Java
-                    loadImageSafely(resolvedUrl, imagePane);
+                    loadImageSafely(resolvedUrl, imageView);
                 } else {
-                    // No image URL — show placeholder
-                    imagePane.setVisible(false);
-                    imagePane.setManaged(false);
-                    mediaView.setVisible(false);
-                    mediaView.setManaged(false);
-                    noImageLabel.setVisible(true);
-                    mediaContainer.setStyle("-fx-background-color: linear-gradient(to bottom, #fff0f5, #ffe4e1);");
+                    mediaContainer.setVisible(false);
+                    mediaContainer.setManaged(false);
                 }
                 
                 // Wire actions
-                likeBtn.setOnAction(e -> likeMoment(id, likesLabel));
+                likeBtn.setOnAction(e -> likeMoment(id, likesLabel, likeBtn));
                 commentBtn.setOnAction(e -> openComments(id));
                 shareBtn.setOnAction(e -> shareMoment(id));
                 
                 long userId = item.path("userId").asLong();
                 com.catconnect.model.User currentUser = Session.getCurrentUser();
-                if (currentUser != null && currentUser.getId() == userId) {
+                if (currentUser != null && (currentUser.getId() == userId || currentUser.isAdmin())) {
                     deleteBtn.setVisible(true);
                     deleteBtn.setManaged(true);
                     deleteBtn.setOnAction(e -> deleteMoment(id, item));
@@ -610,18 +637,14 @@ public class MomentsController {
                     deleteBtn.setManaged(false);
                 }
                 
-                setGraphic(root);
+                setGraphic(cellRoot);
             }
         }
         
-        private void loadImageSafely(String url, Pane target) {
+        private void loadImageSafely(String url, ImageView target) {
+            target.setImage(null);
             if (imageCache.containsKey(url)) {
-                Image img = imageCache.get(url);
-                BackgroundImage bgImg = new BackgroundImage(
-                    img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
-                    new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true)
-                );
-                target.setBackground(new Background(bgImg));
+                target.setImage(imageCache.get(url));
                 return;
             }
             
@@ -642,11 +665,7 @@ public class MomentsController {
                             Image img = new Image(new java.io.ByteArrayInputStream(response.body()));
                             imageCache.put(url, img);
                             Platform.runLater(() -> {
-                                BackgroundImage bgImg = new BackgroundImage(
-                                    img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
-                                    new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true)
-                                );
-                                target.setBackground(new Background(bgImg));
+                                target.setImage(img);
                             });
                         } catch (Exception e) {
                             System.err.println("Failed to construct image from bytes: " + e.getMessage());

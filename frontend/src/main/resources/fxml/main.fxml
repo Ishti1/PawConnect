@@ -50,6 +50,8 @@
                     <Button text="🏠 Shelters" onAction="#showShelters" fx:id="btnShelters" styleClass="nav-button"/>
                     <Button text="🐾 Adoption" onAction="#showAdoption" fx:id="btnAdoption" styleClass="nav-button"/>
                     <Button text="😹 Cat Memes" onAction="#showMemes" fx:id="btnMemes" styleClass="nav-button"/>
+                    <Button text="🎮 Cat Game" onAction="#showCatGame" fx:id="btnCatGame" styleClass="nav-button"/>
+                    <Button text="📚 Cat Library" onAction="#showCatLibrary" fx:id="btnCatLibrary" styleClass="nav-button"/>
                     <Button text="⚙️ Manage Account" onAction="#showManageAccount" fx:id="btnManageAccount" styleClass="nav-button"/>
                     <Button text="💬 Chat" onAction="#showChat" fx:id="btnChat" styleClass="nav-button"/>
                 </VBox>

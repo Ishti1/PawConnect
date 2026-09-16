@@ -14,7 +14,7 @@ import java.util.Map;
 public class DonationsController extends BaseListController {
 
     @FXML private VBox addForm;
-    @FXML private TextField titleField, goalField, imageUrlField, accountNameField, accountNumberField, bankNameField, mobileBankingField;
+    @FXML private TextField titleField, phoneField, goalField, imageUrlField, accountNameField, accountNumberField, bankNameField, mobileBankingField;
     @FXML private TextArea descField, paymentInstructionsField;
     @FXML private ImageView photoPreview;
     @FXML private Label photoLabel;
@@ -45,6 +45,7 @@ public class DonationsController extends BaseListController {
         }
         Map<String, Object> body = new HashMap<>();
         body.put("title", titleField.getText().trim());
+        body.put("contactPhone", phoneField.getText().trim());
         body.put("description", descField.getText().trim());
         if (goal != null && goal.compareTo(BigDecimal.ZERO) > 0) {
             body.put("goalAmount", goal);
@@ -67,21 +68,48 @@ public class DonationsController extends BaseListController {
     @Override protected VBox buildCard(JsonNode item) {
         long id = item.path("id").asLong();
         double goal = item.path("goalAmount").asDouble();
-        double raised = item.path("raisedAmount").asDouble();
-        int pct = goal > 0 ? (int) ((raised / goal) * 100) : 0;
         String title = item.path("title").asText("Campaign");
-        String detail = item.path("description").asText() + "\nRaised: " + raised + " / " + goal + " (" + pct + "%)";
+        String phone = item.path("contactPhone").asText("No phone");
+        String posterName = item.path("senderName").asText("Anonymous");
+        String description = item.path("description").asText();
+
+        String detail = "👤 Posted by: " + posterName + "\n📞 Contact: " + phone + "\n\n" + description + "\n\n💰 Goal: " + goal;
+
         VBox card = buildCatalogCard(item, id, title, detail, "/donations/" + id + "/react", () -> beginEdit(item));
-        Button accountBtn = new Button("Account Info");
+
+        javafx.scene.layout.HBox actionButtons = new javafx.scene.layout.HBox(10);
+
+        Button accountBtn = new Button("💳 Account Info");
         accountBtn.getStyleClass().add("secondary-button");
         accountBtn.setOnAction(e -> showAccountInfo(item));
-        card.getChildren().add(accountBtn);
+        actionButtons.getChildren().add(accountBtn);
+
+        if (!isOwn(item)) {
+            Button messageBtn = new Button("💬 Message Poster");
+            messageBtn.getStyleClass().add("primary-button");
+            messageBtn.setOnAction(e -> {
+                long targetUserId = item.path("userId").asLong(-1);
+                if (targetUserId != -1) {
+                    if (MainController.getInstance() != null) {
+                        MainController.getInstance().openDirectChat(targetUserId, posterName);
+                    } else {
+                        com.catconnect.util.UiHelper.showError("Navigation error: Main screen not found.");
+                    }
+                } else {
+                    com.catconnect.util.UiHelper.showError("Cannot message this user.");
+                }
+            });
+            actionButtons.getChildren().add(messageBtn);
+        }
+
+        card.getChildren().add(actionButtons);
         return card;
     }
 
     private void beginEdit(JsonNode item) {
         editingId = item.path("id").asLong(); existingImageUrl = imageUrlFrom(item);
         titleField.setText(item.path("title").asText(""));
+        phoneField.setText(item.path("contactPhone").asText(""));
         descField.setText(item.path("description").asText(""));
         goalField.setText(item.path("goalAmount").asText(""));
         accountNameField.setText(item.path("accountName").asText(""));
@@ -108,7 +136,7 @@ public class DonationsController extends BaseListController {
     private void showForm(boolean show) {
         addForm.setVisible(show); addForm.setManaged(show);
         if (!show) {
-            titleField.clear(); descField.clear(); goalField.clear();
+            titleField.clear(); phoneField.clear(); descField.clear(); goalField.clear();
             accountNameField.clear(); accountNumberField.clear(); bankNameField.clear();
             mobileBankingField.clear(); paymentInstructionsField.clear();
             clearSelectedImage(photoPreview, photoLabel, imageUrlField);

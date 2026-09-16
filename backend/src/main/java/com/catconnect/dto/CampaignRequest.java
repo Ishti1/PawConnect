@@ -20,4 +20,5 @@ public class CampaignRequest {
     private String bankName;
     private String mobileBanking;
     private String paymentInstructions;
+    private String contactPhone;
 }

@@ -21,6 +21,9 @@ public class AdoptionController extends BaseListController {
     @FXML private TextField breedField;
     @FXML private TextField ageField;
     @FXML private ComboBox<String> genderBox;
+    @FXML private TextField locationField;
+    @FXML private TextField addressLinkField;
+    @FXML private TextField phoneField;
     @FXML private TextArea descField;
     @FXML private ImageView photoPreview;
     @FXML private Label photoLabel;
@@ -61,6 +64,9 @@ public class AdoptionController extends BaseListController {
         body.put("ageMonths", ageMonths);
         body.put("gender", genderBox.getValue());
         body.put("description", descField.getText().trim());
+        body.put("location", locationField.getText().trim());
+        body.put("address", addressLinkField.getText().trim());
+        body.put("contactPhone", phoneField.getText().trim());
         File imageFile = selectedImageFile;
         String imageUrl = readImageUrlField(imageUrlField);
         if (isEditing && imageFile == null && imageUrl.isBlank() && existingImageUrl != null && !existingImageUrl.isBlank()) {
@@ -89,10 +95,45 @@ public class AdoptionController extends BaseListController {
         String gender = item.path("gender").asText();
         int age = item.path("ageMonths").asInt(0);
         String desc = item.path("description").asText();
-        String title = name + (breed.isBlank() ? "" : " (" + breed + ")");
-        String detail = gender + ", " + age + " months\n" + desc;
+        String loc = item.path("location").asText("Unknown location");
+        String phone = item.path("contactPhone").asText("No phone");
+        String posterName = item.path("senderName").asText("Anonymous");
 
-        return buildCatalogCard(item, id, title, detail, "/adoptions/" + id + "/react", () -> beginEdit(item));
+        String title = name + (breed.isBlank() ? "" : " (" + breed + ")");
+        String detail = "👤 Posted by: " + posterName + "\n📍 Location: " + loc + "\n📞 Phone: " + phone + "\n\n" + gender + ", " + age + " months\n" + desc;
+
+        VBox card = buildCatalogCard(item, id, title, detail, "/adoptions/" + id + "/react", () -> beginEdit(item));
+
+        javafx.scene.layout.HBox actionButtons = new javafx.scene.layout.HBox(10);
+
+        Button addressBtn = addressLinkButton(item.path("address").asText(""));
+        if (addressBtn != null) {
+            actionButtons.getChildren().add(addressBtn);
+        }
+
+        if (!isOwn(item)) {
+            Button messageBtn = new Button("💬 Message Poster");
+            messageBtn.getStyleClass().add("primary-button");
+            messageBtn.setOnAction(e -> {
+                long targetUserId = item.path("userId").asLong(-1);
+                if (targetUserId != -1) {
+                    if (MainController.getInstance() != null) {
+                        MainController.getInstance().openDirectChat(targetUserId, posterName);
+                    } else {
+                        com.catconnect.util.UiHelper.showError("Navigation error: Main screen not found.");
+                    }
+                } else {
+                    com.catconnect.util.UiHelper.showError("Cannot message this user (User ID not found).");
+                }
+            });
+            actionButtons.getChildren().add(messageBtn);
+        }
+
+        if (!actionButtons.getChildren().isEmpty()) {
+            card.getChildren().add(actionButtons);
+        }
+
+        return card;
     }
 
     private void beginEdit(JsonNode item) {
@@ -102,6 +143,9 @@ public class AdoptionController extends BaseListController {
         breedField.setText(item.path("breed").asText(""));
         ageField.setText(String.valueOf(item.path("ageMonths").asInt(0)));
         genderBox.setValue(item.path("gender").asText("Unknown"));
+        locationField.setText(item.path("location").asText(""));
+        addressLinkField.setText(item.path("address").asText(""));
+        phoneField.setText(item.path("contactPhone").asText(""));
         descField.setText(item.path("description").asText(""));
         imageUrlField.setText(existingImageUrl);
         addForm.setVisible(true);
@@ -115,6 +159,9 @@ public class AdoptionController extends BaseListController {
             catNameField.clear();
             breedField.clear();
             ageField.clear();
+            locationField.clear();
+            addressLinkField.clear();
+            phoneField.clear();
             descField.clear();
             genderBox.setValue("Unknown");
             clearSelectedImage(photoPreview, photoLabel, imageUrlField);

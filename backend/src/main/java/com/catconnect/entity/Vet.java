@@ -46,6 +46,11 @@
 
         private Integer likes;
 
+        @ElementCollection(fetch = FetchType.EAGER)
+        @CollectionTable(name = "vet_likes", joinColumns = @JoinColumn(name = "vet_id"))
+        @Column(name = "user_id")
+        private java.util.Set<Long> likedBy = new java.util.HashSet<>();
+
         @PrePersist
         void onCreate() {
             if (likes == null) {

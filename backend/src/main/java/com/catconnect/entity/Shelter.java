@@ -41,6 +41,11 @@ public class Shelter {
 
     private Integer likes;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "shelter_likes", joinColumns = @JoinColumn(name = "shelter_id"))
+    @Column(name = "user_id")
+    private java.util.Set<Long> likedBy = new java.util.HashSet<>();
+
     @PrePersist
     void onCreate() {
         if (likes == null) {

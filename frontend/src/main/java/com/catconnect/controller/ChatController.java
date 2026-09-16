@@ -55,6 +55,7 @@ public class ChatController {
     private String lastMessagedUserName = "User";
     private final Map<String, Long> nameToIdMap = new HashMap<>();
     private LocalDate lastMessageDate = null;
+    private java.util.Set<Long> unreadSenderIds = new java.util.HashSet<>();
 
     @FXML
     public void initialize() {
@@ -342,11 +343,14 @@ public class ChatController {
         new Thread(() -> {
             try {
                 String url = ApiClient.get().uploadImage(file, "chat");
-                String baseUrl = Session.getApiBaseUrl();
-                if (baseUrl.endsWith("/api")) {
-                    baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
+                String fullUrl = url;
+                if (!url.startsWith("http")) {
+                    String baseUrl = Session.getApiBaseUrl();
+                    if (baseUrl.endsWith("/api")) {
+                        baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
+                    }
+                    fullUrl = baseUrl + url;
                 }
-                String fullUrl = baseUrl + url;
                 String imgMessage = "[img]" + fullUrl + "[/img]";
 
                 if (chatClient.isConnected()) {
@@ -687,6 +691,13 @@ public class ChatController {
         }
     }
 
+    public void updateUnreadStatuses(java.util.Set<Long> unreadIds) {
+        if (!this.unreadSenderIds.equals(unreadIds)) {
+            this.unreadSenderIds = unreadIds;
+            Platform.runLater(() -> userListView.refresh());
+        }
+    }
+
     private class ContactCell extends ListCell<String> {
         @Override
         protected void updateItem(String name, boolean empty) {
@@ -701,6 +712,11 @@ public class ChatController {
 
             Label nameLabel = new Label(name);
             nameLabel.getStyleClass().add("contact-name");
+
+            Long contactId = nameToIdMap.get(name);
+            if (contactId != null && unreadSenderIds.contains(contactId)) {
+                nameLabel.getStyleClass().add("contact-unread-glow");
+            }
 
             VBox textCol = new VBox(2);
             textCol.getChildren().add(nameLabel);

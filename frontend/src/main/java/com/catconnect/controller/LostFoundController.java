@@ -18,6 +18,7 @@ public class LostFoundController extends BaseListController {
 
     @FXML private VBox addForm;
     @FXML private ComboBox<String> typeBox;
+    @FXML private ComboBox<String> filterBox;
     @FXML private TextField descField;
     @FXML private TextField locationField;
     @FXML private TextField addressLinkField;
@@ -33,6 +34,11 @@ public class LostFoundController extends BaseListController {
     public void initialize() {
         typeBox.getItems().addAll("LOST", "FOUND");
         typeBox.setValue("LOST");
+        
+        filterBox.getItems().addAll("All", "Lost", "Found");
+        filterBox.setValue("All");
+        filterBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        
         loadData();
     }
 
@@ -78,6 +84,29 @@ public class LostFoundController extends BaseListController {
     @Override protected String getApiPath()         { return "/lost-found"; }
     @Override protected String getDeletePath()      { return "/lost-found/"; }
     @Override protected String getUploadCategory()  { return "lost-found"; }
+
+    @Override
+    protected void renderListHook(JsonNode data) {
+        applyFilter();
+    }
+
+    @Override
+    protected void upsertItemInList(JsonNode item) {
+        super.upsertItemInList(item);
+        applyFilter();
+    }
+
+    private void applyFilter() {
+        if (listBox == null || filterBox == null) return;
+        String filter = filterBox.getValue();
+        for (javafx.scene.Node node : listBox.getChildren()) {
+            if (node.getUserData() instanceof String type) {
+                boolean show = "All".equalsIgnoreCase(filter) || filter.equalsIgnoreCase(type);
+                node.setVisible(show);
+                node.setManaged(show);
+            }
+        }
+    }
 
     @Override
     protected VBox buildCard(JsonNode item) {
@@ -133,6 +162,9 @@ public class LostFoundController extends BaseListController {
         if (!actionButtons.getChildren().isEmpty()) {
             card.getChildren().add(actionButtons);
         }
+
+        // Store the type in userData for filtering
+        card.setUserData(type);
 
         return card;
     }

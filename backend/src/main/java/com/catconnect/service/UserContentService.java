@@ -9,6 +9,7 @@ import com.catconnect.dto.MomentUpdateRequest;
 import com.catconnect.repository.AdoptionListingRepository;
 import com.catconnect.repository.CatMemeRepository;
 import com.catconnect.repository.CatMomentRepository;
+import com.catconnect.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class UserContentService {
     private final OwnershipService ownershipService;
     private final com.catconnect.repository.UserRepository userRepository;
     private final com.catconnect.repository.CatMomentCommentRepository catMomentCommentRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void deleteMoment(Long id, Long currentUserId) {
@@ -81,7 +83,19 @@ public class UserContentService {
         if (req.getGender() != null) listing.setGender(req.getGender());
         if (req.getDescription() != null) listing.setDescription(req.getDescription());
         if (req.getImageUrl() != null && !req.getImageUrl().isBlank()) listing.setImageUrl(req.getImageUrl());
+        if (req.getLocation() != null) listing.setLocation(req.getLocation());
+        if (req.getAddress() != null) listing.setAddress(req.getAddress());
+        if (req.getContactPhone() != null) listing.setContactPhone(req.getContactPhone());
         return adoptionListingRepository.save(listing);
+    }
+
+    public List<AdoptionListing> getAllActiveAdoptions() {
+        List<AdoptionListing> adoptions = adoptionListingRepository.findByStatus("AVAILABLE");
+        for (AdoptionListing ad : adoptions) {
+            com.catconnect.entity.User user = userRepository.findById(ad.getUserId()).orElse(null);
+            ad.setSenderName(user != null ? user.getDisplayName() : "Anonymous");
+        }
+        return adoptions;
     }
 
     public List<com.catconnect.dto.MomentResponse> getAllMoments() {
@@ -122,11 +136,20 @@ public class UserContentService {
 
     @Transactional
     public com.catconnect.entity.CatMomentComment addComment(Long momentId, Long userId, com.catconnect.dto.CommentRequest req) {
-        return catMomentCommentRepository.save(com.catconnect.entity.CatMomentComment.builder()
+        com.catconnect.entity.CatMomentComment savedComment = catMomentCommentRepository.save(com.catconnect.entity.CatMomentComment.builder()
                 .momentId(momentId)
                 .userId(userId)
                 .content(req.getContent())
                 .build());
+                
+        catMomentRepository.findById(momentId).ifPresent(moment -> {
+            if (!moment.getUserId().equals(userId)) {
+                String commenterName = userRepository.findById(userId).map(com.catconnect.entity.User::getDisplayName).orElse("Someone");
+                notificationService.createNotification(moment.getUserId(), commenterName + " commented on your post", "COMMENT", userId);
+            }
+        });
+        
+        return savedComment;
     }
 
     public List<com.catconnect.dto.CommentResponse> getComments(Long momentId) {

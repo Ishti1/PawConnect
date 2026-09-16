@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.web.WebView?>
 
 <StackPane xmlns="http://javafx.com/javafx/21"
@@ -8,4 +10,12 @@
            fx:controller="com.catconnect.controller.HomeController"
            style="-fx-background-color: #faf9f7;">
     <WebView fx:id="homeWebView" />
+    
+    <VBox fx:id="notificationsBox" StackPane.alignment="TOP_RIGHT" 
+          maxWidth="300" maxHeight="500" spacing="10" pickOnBounds="false"
+          style="-fx-background-color: transparent;">
+        <StackPane.margin>
+            <Insets top="20" right="20" bottom="0" left="0"/>
+        </StackPane.margin>
+    </VBox>
 </StackPane>

@@ -36,6 +36,12 @@
         <TextField fx:id="ageField" promptText="e.g. 8"/>
         <Label text="Gender" styleClass="form-label"/>
         <ComboBox fx:id="genderBox" maxWidth="Infinity"/>
+        <Label text="Location" styleClass="form-label"/>
+        <TextField fx:id="locationField" promptText="e.g. Downtown Cairo"/>
+        <Label text="Address Link (optional map URL)" styleClass="form-label"/>
+        <TextField fx:id="addressLinkField" promptText="https://maps.google.com/..."/>
+        <Label text="Contact phone" styleClass="form-label"/>
+        <TextField fx:id="phoneField" promptText="+20-100-000-0000"/>
         <Label text="Description" styleClass="form-label"/>
         <TextArea fx:id="descField" promptText="Tell us about the cat..." prefRowCount="3" wrapText="true"/>
         <Label text="Photo (optional)" styleClass="form-label"/>
@@ -54,5 +60,5 @@
     </VBox>
 
     <Label fx:id="statusLabel" text="Loading listings..." styleClass="action-bar-hint"/>
-    <VBox fx:id="listBox" spacing="10"/>
+    <TilePane fx:id="listBox" hgap="16" vgap="16"/>
 </VBox>
