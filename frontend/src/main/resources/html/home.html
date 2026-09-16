@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8">
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAGu0YXmo6JsY7xS_k4eQmi1Jv6vPRirLQ&callback=initMap&v=3.55" async defer></script>
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
@@ -301,54 +302,34 @@
       padding: 8px 16px;
       font-size: 14px;
       color: #333;
-      cursor: pointer !important;
-      -webkit-cursor: pointer;
+      cursor: pointer;
       transition: all 0.2s;
-      position: relative;
-      z-index: 10;
-      user-select: none;
     }
 
     .pill-btn:hover {
       border-color: #ff6b6b;
       color: #ff6b6b;
       background: #fff5f5;
-      cursor: pointer !important;
-    }
-
-    .location-confirmed {
-      display: none;
-      margin-top: 16px;
-      padding: 12px 18px;
-      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-      border: 1px solid #81c784;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      color: #2e7d32;
-      text-align: center;
-      animation: fadeSlideIn 0.3s ease-out;
-    }
-
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     #map {
       width: 100%;
       height: 250px;
       display: none;
-      object-fit: cover;
       border-radius: 8px;
       margin-top: 16px;
       border: 1px solid #ddd;
-      background: #e8e8e8;
-      pointer-events: none;
     }
 
-    #map[src] {
-      pointer-events: auto;
+    .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .leaflet-control-zoom a {
+      color: #333 !important;
+      border-radius: 8px !important;
+      margin-bottom: 4px;
     }
 
     /* ── Services Section ── */
@@ -522,7 +503,7 @@
           <div class="input-wrapper">
             <input type="text" id="address-input" placeholder="Street, City, Area" value="${LOCATION}"
               onkeypress="if(event.key === 'Enter') submitLocation();"
-              oninput="if(this.value.trim() === '') { document.getElementById('map').style.display = 'none'; document.getElementById('locationConfirmed').style.display = 'none'; }" />
+              oninput="if(this.value.trim() === '') { document.getElementById('popularSection').style.display = 'block'; document.getElementById('map').style.display = 'none'; }" />
             <button class="locate-btn" onclick="doLocateMe()">
               <svg focusable="false" aria-hidden="true" viewBox="0 0 24 24">
                 <path
@@ -539,8 +520,7 @@
             </svg>
           </button>
         </div>
-        <img id="map" alt="Selected location map" />
-        <div class="location-confirmed" id="locationConfirmed">✅ Location set to: <span id="confirmedName"></span></div>
+        <img id="map" style="object-fit: cover; display: none;" />
         <div class="popular-section" id="popularSection">
           <h3>Popular locations</h3>
           <div class="pill-container">
@@ -549,7 +529,6 @@
             <button class="pill-btn" onclick="setAddress('Banani')">Banani</button>
             <button class="pill-btn" onclick="setAddress('Gulshan')">Gulshan</button>
             <button class="pill-btn" onclick="setAddress('Mohakhali')">Mohakhali</button>
-            <button class="pill-btn" onclick="setAddress('Mirpur')">Mirpur</button>
           </div>
         </div>
       </div>
@@ -671,7 +650,15 @@
       alert("navigate:" + screen);
     }
 
-    var googleApiKey = "AIzaSyAGu0YXmo6JsY7xS_k4eQmi1Jv6vPRirLQ";
+    window.onerror = function(message, source, lineno, colno, error) {
+      alert("error: " + message + " at " + source + ":" + lineno);
+    };
+    var originalConsoleError = console.error;
+    console.error = function() {
+      alert("error: " + Array.from(arguments).join(" "));
+      originalConsoleError.apply(console, arguments);
+    };
+
     var isMapVisible = ${IS_MAP_VISIBLE};
 
     var initLat = parseFloat('${USER_LAT}') || 0;
@@ -681,56 +668,31 @@
       initLon = 90.4125;
     }
 
-    var AREA_COORDS = {
-      dhanmondi: [23.7465, 90.3760],
-      uttara: [23.8759, 90.3795],
-      banani: [23.7940, 90.4043],
-      gulshan: [23.7925, 90.4078],
-      mohakhali: [23.7776, 90.4054],
-      mirpur: [23.8223, 90.3654]
-    };
-
-    function coordsForLocation(loc) {
-      var locLower = (loc || '').toLowerCase();
-      for (var name in AREA_COORDS) {
-        if (locLower.indexOf(name) !== -1) return AREA_COORDS[name];
-      }
-      return null;
-    }
-
-    function persistLocation(loc, lat, lng) {
-      alert('selectLocation:' + loc + '|' + lat + '|' + lng);
-    }
+    const googleApiKey = "AIzaSyAGu0YXmo6JsY7xS_k4eQmi1Jv6vPRirLQ";
 
     function updateStaticMap(lat, lng) {
-      var mapImg = document.getElementById('map');
+      const mapImg = document.getElementById('map');
+      
+      // User marker (Red)
+      let markers = `markers=color:red%7C${lat},${lng}`;
+      
+      // Nearby mock shops/vets (Green)
+      markers += `&markers=color:green%7Csize:mid%7C${lat + 0.003},${lng + 0.004}`;
+      markers += `&markers=color:green%7Csize:mid%7C${lat - 0.004},${lng + 0.002}`;
+      markers += `&markers=color:green%7Csize:mid%7C${lat + 0.001},${lng - 0.005}`;
+
+      const staticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=14&size=500x250&scale=2&maptype=roadmap&${markers}&key=${googleApiKey}`;
+      mapImg.src = staticUrl;
       mapImg.style.display = 'block';
-
-      var markers = 'markers=color:red%7C' + lat + ',' + lng;
-      markers += '&markers=color:green%7Csize:mid%7C' + (lat + 0.003) + ',' + (lng + 0.004);
-      markers += '&markers=color:green%7Csize:mid%7C' + (lat - 0.004) + ',' + (lng + 0.002);
-      markers += '&markers=color:green%7Csize:mid%7C' + (lat + 0.001) + ',' + (lng - 0.005);
-
-      var googleUrl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + lat + ',' + lng
-        + '&zoom=14&size=600x250&scale=2&maptype=roadmap&' + markers + '&key=' + googleApiKey;
-      var osmUrl = 'https://staticmap.openstreetmap.de/staticmap.php?center=' + lat + ',' + lng
-        + '&zoom=14&size=600x250&markers=' + lat + ',' + lng + ',red-pushpin';
-
-      mapImg.onerror = function () {
-        mapImg.onerror = function () {
-          mapImg.onerror = null;
-          // If both map sources fail, just hide the map — the confirmation message still shows
-          mapImg.style.display = 'none';
-        };
-        mapImg.src = osmUrl;
-      };
-      mapImg.src = googleUrl;
+      document.getElementById('popularSection').style.display = 'none';
     }
 
-    window.onload = function () {
+    window.onload = function() {
       if (isMapVisible) {
         updateStaticMap(initLat, initLon);
       }
+
+      // Show location dialog if no address is set
       setTimeout(function () {
         if (document.getElementById('address-input').value.trim() === '') {
           document.getElementById('locationDialog').style.display = 'flex';
@@ -739,86 +701,55 @@
     };
 
     function googleGeocode(lat, lng) {
-      fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng=' + lat + ',' + lng + '&key=' + googleApiKey)
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          var addr = 'Dhaka';
+      // Use Google Geocoding API for exact reverse geocoding
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleApiKey}`)
+        .then(r => r.json())
+        .then(data => {
           if (data.status === 'OK' && data.results && data.results.length > 0) {
-            var components = data.results[0].address_components;
-            var specificArea = components.find(function (c) {
-              return c.types.indexOf('neighborhood') !== -1
-                || c.types.indexOf('sublocality_level_1') !== -1
-                || c.types.indexOf('sublocality') !== -1;
-            });
-            addr = specificArea ? specificArea.long_name : data.results[0].formatted_address.split(',')[0];
+            let addr = '';
+            let components = data.results[0].address_components;
+            let specificArea = components.find(c => c.types.includes('neighborhood') || c.types.includes('sublocality_level_1') || c.types.includes('sublocality') || c.types.includes('administrative_area_level_3'));
+            let city = components.find(c => c.types.includes('locality') || c.types.includes('administrative_area_level_2'));
+
+            if (specificArea && city && specificArea.long_name !== city.long_name) {
+              addr = specificArea.long_name + ", " + city.long_name;
+            } else if (specificArea) {
+              addr = specificArea.long_name;
+            } else {
+              addr = data.results[0].formatted_address.split(',')[0];
+            }
+
+            document.getElementById('address-input').value = addr;
+            setTimeout(function () { alert('selectLocation:' + addr); }, 150);
           }
-          document.getElementById('address-input').value = addr;
-          persistLocation(addr, lat, lng);
-        })
-        .catch(function () {
-          document.getElementById('address-input').value = 'Dhaka';
-          persistLocation('Dhaka', lat, lng);
         });
     }
 
-    function setAddress(loc) {
-      try {
-        var inputEl = document.getElementById('address-input');
-        if (inputEl) {
-          inputEl.value = loc;
-        }
-        submitLocation();
-      } catch(e) {
-        if (document.getElementById('address-input')) {
-          document.getElementById('address-input').value = 'ERROR: ' + e.message;
-        }
-      }
-    }
-
-    function showLocationConfirmed(loc) {
-      try {
-        var el = document.getElementById('locationConfirmed');
-        var name = document.getElementById('confirmedName');
-        if (el && name) {
-          name.textContent = loc;
-          el.style.display = 'block';
-        }
-      } catch(e) {
-        console.log(e);
-      }
-    }
+    function setAddress(loc) { document.getElementById('address-input').value = loc; }
 
     function submitLocation() {
       var loc = document.getElementById('address-input').value;
-      if (!loc || loc.trim() === '') return;
-      loc = loc.trim();
+      if (loc.trim() === '') return;
 
-      var known = coordsForLocation(loc);
-      if (known) {
-        updateStaticMap(known[0], known[1]);
-        showLocationConfirmed(loc);
-        persistLocation(loc, known[0], known[1]);
-        return;
-      }
-
-      fetch('https://maps.googleapis.com/maps/api/geocode/json?address='
-          + encodeURIComponent(loc + ', Bangladesh') + '&key=' + googleApiKey)
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          var lat = 23.8103;
-          var lng = 90.4125;
+      // Geocode using Google Geocoding API
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(loc + ', Bangladesh')}&key=${googleApiKey}`)
+        .then(r => r.json())
+        .then(data => {
           if (data.status === 'OK' && data.results && data.results.length > 0) {
-            lat = data.results[0].geometry.location.lat;
-            lng = data.results[0].geometry.location.lng;
+            var lat = data.results[0].geometry.location.lat;
+            var lng = data.results[0].geometry.location.lng;
+            
+            // Update the embedded static map
+            updateStaticMap(lat, lng);
+            
+            // Send exact coordinates to Java to open the Real Google Map
+            alert('openRealMap:' + lat + ',' + lng + ',' + encodeURIComponent(loc));
+          } else {
+            alert("Could not find location: " + loc);
           }
-          updateStaticMap(lat, lng);
-          showLocationConfirmed(loc);
-          persistLocation(loc, lat, lng);
         })
-        .catch(function () {
-          updateStaticMap(23.8103, 90.4125);
-          showLocationConfirmed(loc);
-          persistLocation(loc, 23.8103, 90.4125);
+        .catch(e => {
+          alert("error: Fetch failed in submitLocation - " + e.message);
         });
     }
 
@@ -829,34 +760,42 @@
       document.getElementById('locationDialog').style.display = 'none';
       document.getElementById('address-input').value = 'Locating...';
       document.getElementById('map').style.display = 'block';
+      document.getElementById('popularSection').style.display = 'none';
+      setTimeout(function() { map.invalidateSize(); }, 150);
+
+      // Ask Java backend to fetch OS-level exact coordinates
       alert('getExactLocation');
     }
 
-    function handleFallback(bssids) {
+    const handleFallback = (bssids) => {
       document.getElementById('address-input').value = 'Locating via Google...';
-      var reqBody = { considerIp: true };
-      if (bssids && bssids.trim() !== '') {
-        reqBody.wifiAccessPoints = bssids.split(',').map(function (mac) { return { macAddress: mac }; });
+      
+      let reqBody = { considerIp: true };
+      if (bssids && bssids.trim() !== "") {
+        reqBody.wifiAccessPoints = bssids.split(',').map(mac => ({ macAddress: mac }));
       }
-      fetch('https://www.googleapis.com/geolocation/v1/geolocate?key=' + googleApiKey, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqBody)
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          if (!data || !data.location) throw new Error('Invalid loc');
-          updateStaticMap(data.location.lat, data.location.lng);
-          googleGeocode(data.location.lat, data.location.lng);
-        })
-        .catch(function () {
-          document.getElementById('address-input').value = 'Dhaka';
-          updateStaticMap(23.8103, 90.4125);
-          persistLocation('Dhaka', 23.8103, 90.4125);
-        });
-    }
 
-    window.exactLocationCallback = function (lat, lon, bssids) {
+      fetch(`https://www.googleapis.com/geolocation/v1/geolocate?key=${googleApiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reqBody)
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (!data || !data.location) throw new Error("Invalid loc");
+          var lat = data.location.lat;
+          var lon = data.location.lng;
+          updateStaticMap(lat, lon);
+          googleGeocode(lat, lon);
+        }).catch(e => {
+          document.getElementById('address-input').value = 'Location fallback (Dhaka)';
+          var lat = 23.8103, lon = 90.4125;
+          updateStaticMap(lat, lon);
+          googleGeocode(lat, lon);
+        });
+    };
+
+    window.exactLocationCallback = function(lat, lon, bssids) {
       if (lat !== null && lon !== null && !isNaN(lat) && lat !== 0) {
         updateStaticMap(lat, lon);
         googleGeocode(lat, lon);

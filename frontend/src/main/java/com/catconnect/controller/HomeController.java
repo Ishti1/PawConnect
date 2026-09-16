@@ -5,21 +5,13 @@ import com.catconnect.util.UiHelper;
 import javafx.fxml.FXML;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Button;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.catconnect.service.ApiClient;
+
 import java.nio.charset.StandardCharsets;
 
 public class HomeController {
 
     @FXML
     private WebView homeWebView;
-
-    @FXML
-    private VBox notificationsBox;
 
     private WebEngine webEngine;
     
@@ -46,16 +38,10 @@ public class HomeController {
                             }
                         });
                     } else if (data.startsWith("selectLocation:")) {
-                        String payload = data.substring("selectLocation:".length());
+                        String loc = data.substring("selectLocation:".length());
                         javafx.application.Platform.runLater(() -> {
-                            String[] parts = payload.split("\\|");
-                            Session.setSelectedLocation(parts[0]);
-                            if (parts.length >= 3) {
-                                try {
-                                    Session.setUserLat(Double.parseDouble(parts[1]));
-                                    Session.setUserLon(Double.parseDouble(parts[2]));
-                                } catch (NumberFormatException ignored) {}
-                            }
+                            Session.setSelectedLocation(loc);
+                            UiHelper.showInfo("Location saved to " + loc + "! Showing nearby services.");
                         });
                     } else if (data.startsWith("openRealMap:")) {
                         String[] parts = data.substring(12).split(",", 3);
@@ -160,48 +146,6 @@ public class HomeController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    public void updateNotifications(JsonNode unread) {
-        if (notificationsBox == null) return;
-        notificationsBox.getChildren().clear();
-        for (JsonNode n : unread) {
-            String type = n.path("type").asText();
-            String msg = n.path("message").asText();
-            Long id = n.path("id").asLong();
-
-            VBox card = new VBox(5);
-            card.setStyle("-fx-background-color: #2c3e50; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);");
-            
-            Label title = new Label(type + " Notification");
-            title.setStyle("-fx-text-fill: #ff6b6b; -fx-font-weight: bold; -fx-font-size: 14px;");
-            
-            Label body = new Label(msg);
-            body.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
-            body.setWrapText(true);
-            
-            card.getChildren().addAll(title, body);
-            
-            // Hover effect
-            card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #34495e; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 10, 0, 0, 5);"));
-            card.setOnMouseExited(e -> card.setStyle("-fx-background-color: #2c3e50; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);"));
-            
-            // Click to read
-            card.setOnMouseClicked(e -> {
-                try {
-                    ApiClient.get().putJson("/notifications/" + id + "/read", java.util.Map.of());
-                } catch (Exception ex) {}
-                
-                // Navigate
-                if ("CHAT".equals(type)) {
-                    MainController.getInstance().navigateTo("chat");
-                } else {
-                    MainController.getInstance().navigateTo("moments");
-                }
-            });
-            
-            notificationsBox.getChildren().add(card);
         }
     }
 }

@@ -1,82 +1,2771 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Vet Map</title>
+<html lang="en">
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>PawConnect Map</title>
+
+
+    <!--
+        Leaflet 1.8.0 intentionally used.
+
+        Leaflet 1.9.x caused rendering problems
+        inside JavaFX WebView for this project.
+    -->
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    />
+
 
     <style>
-        html, body, #map {
-            height: 100%;
+
+        html,
+        body {
+
             width: 100%;
+            height: 100%;
+
             margin: 0;
             padding: 0;
+
+            overflow: hidden;
+
+            font-family:
+                    Arial,
+                    sans-serif;
+
+            background: #eeeeee;
         }
+
+
+        #map {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+        }
+
+
+        /*
+         * ==================================================
+         * JavaFX WebView compatibility
+         * ==================================================
+         */
+
+        .leaflet-tile {
+
+            opacity: 1 !important;
+
+            transition: none !important;
+
+            -webkit-transition:
+                    none !important;
+        }
+
+
+        .leaflet-zoom-animated {
+
+            transition:
+                    none !important;
+
+            -webkit-transition:
+                    none !important;
+        }
+
+
+        /*
+         * ==================================================
+         * PawConnect controls
+         * ==================================================
+         */
+
+        #pawControls {
+
+            position: absolute;
+
+            z-index: 1000;
+
+            top: 12px;
+            right: 12px;
+
+            width: 250px;
+
+            background:
+                    rgba(
+                            255,
+                            255,
+                            255,
+                            0.97
+                    );
+
+            border-radius: 14px;
+
+            padding: 14px;
+
+            box-shadow:
+                    0 3px 14px
+                    rgba(
+                            0,
+                            0,
+                            0,
+                            0.18
+                    );
+        }
+
+
+        #pawControls h3 {
+
+            margin:
+                    0
+                    0
+                    10px
+                    0;
+
+            font-size: 16px;
+
+            color: #333333;
+        }
+
+
+        /*
+         * ==================================================
+         * Filters
+         * ==================================================
+         */
+
+        .filterRow {
+
+            display: flex;
+
+            gap: 6px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .filterButton {
+
+            flex: 1;
+
+            border:
+                    1px
+                    solid
+                    #dddddd;
+
+            border-radius: 8px;
+
+            padding: 8px 5px;
+
+            background: white;
+
+            cursor: pointer;
+
+            font-size: 12px;
+        }
+
+
+        .filterButton:hover {
+
+            border-color:
+                    #ff6b6b;
+        }
+
+
+        .filterButton.active {
+
+            background:
+                    #ff6b6b;
+
+            color: white;
+
+            border-color:
+                    #ff6b6b;
+
+            font-weight: bold;
+        }
+
+
+        /*
+         * ==================================================
+         * Location controls
+         * ==================================================
+         */
+
+        .locationActions {
+
+            margin-top: 10px;
+
+            padding-top: 10px;
+
+            border-top:
+                    1px
+                    solid
+                    #eeeeee;
+        }
+
+
+        .locationButton {
+
+            width: 100%;
+
+            border: none;
+
+            border-radius: 9px;
+
+            padding:
+                    10px
+                    8px;
+
+            background:
+                    #0984e3;
+
+            color: white;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+
+        .locationButton:hover {
+
+            background:
+                    #0873c4;
+        }
+
+
+        .locationButton:disabled {
+
+            opacity: 0.65;
+
+            cursor: default;
+        }
+
+
+        .locationHint {
+
+            margin-top: 7px;
+
+            color: #777777;
+
+            font-size: 11px;
+
+            line-height: 1.4;
+        }
+
+
+        #locationInfo {
+
+            margin-top: 10px;
+
+            padding-top: 10px;
+
+            border-top:
+                    1px
+                    solid
+                    #eeeeee;
+
+            color: #555555;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        /*
+         * ==================================================
+         * ROUTE PANEL
+         * ==================================================
+         */
+
+        #routePanel {
+
+            display: none;
+
+            margin-top: 12px;
+
+            padding: 11px;
+
+            border:
+                    1px
+                    solid
+                    #ffd1d1;
+
+            border-radius: 10px;
+
+            background:
+                    #fff7f7;
+        }
+
+
+        #routePanel h4 {
+
+            margin:
+                    0
+                    0
+                    7px
+                    0;
+
+            color:
+                    #333333;
+
+            font-size: 13px;
+        }
+
+
+        #routeDestination {
+
+            font-weight: bold;
+
+            color:
+                    #ff6b6b;
+
+            margin-bottom: 7px;
+
+            font-size: 12px;
+
+            line-height: 1.35;
+        }
+
+
+        #routeDetails {
+
+            color:
+                    #444444;
+
+            font-size: 12px;
+
+            line-height: 1.6;
+        }
+
+
+        #routeError {
+
+            color:
+                    #c0392b;
+
+            font-size: 12px;
+
+            line-height: 1.4;
+
+            margin-top: 5px;
+        }
+
+
+        .clearRouteButton {
+
+            margin-top: 9px;
+
+            width: 100%;
+
+            border:
+                    1px
+                    solid
+                    #ff6b6b;
+
+            border-radius: 8px;
+
+            padding:
+                    7px
+                    8px;
+
+            background:
+                    white;
+
+            color:
+                    #ff6b6b;
+
+            font-weight: bold;
+
+            font-size: 11px;
+
+            cursor: pointer;
+        }
+
+
+        .clearRouteButton:hover {
+
+            background:
+                    #ff6b6b;
+
+            color:
+                    white;
+        }
+
+
+        /*
+         * ==================================================
+         * Custom markers
+         * ==================================================
+         */
+
+        .pawMarker {
+
+            width: 38px;
+
+            height: 38px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            border-radius: 50%;
+
+            border:
+                    3px
+                    solid
+                    white;
+
+            box-shadow:
+                    0
+                    2px
+                    8px
+                    rgba(
+                            0,
+                            0,
+                            0,
+                            0.30
+                    );
+
+            font-size: 19px;
+        }
+
+
+        .vetMarker {
+
+            background:
+                    #ff6b6b;
+        }
+
+
+        .emergencyMarker {
+
+            background:
+                    #e74c3c;
+        }
+
+
+        .shopMarker {
+
+            background:
+                    #6c5ce7;
+        }
+
+
+        .userMarker {
+
+            background:
+                    #0984e3;
+
+            width: 42px;
+
+            height: 42px;
+
+            font-size: 20px;
+        }
+
+
+        /*
+         * ==================================================
+         * Popup
+         * ==================================================
+         */
+
+        .leaflet-popup-content-wrapper {
+
+            border-radius: 12px;
+        }
+
+
+        .pawPopup {
+
+            min-width: 215px;
+        }
+
+
+        .pawPopup h3 {
+
+            margin:
+                    0
+                    0
+                    8px
+                    0;
+
+            font-size: 16px;
+
+            color: #333333;
+        }
+
+
+        .pawPopup p {
+
+            margin:
+                    5px
+                    0;
+
+            font-size: 13px;
+
+            line-height: 1.35;
+
+            color: #444444;
+        }
+
+
+        .typeBadge {
+
+            display: inline-block;
+
+            padding:
+                    3px
+                    7px;
+
+            margin-bottom: 6px;
+
+            border-radius: 8px;
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            background:
+                    #eeeeee;
+        }
+
+
+        /*
+         * Route button inside vet/shop popup.
+         */
+
+        .routePopupButton {
+
+            width: 100%;
+
+            margin-top: 10px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            padding:
+                    9px
+                    10px;
+
+            background:
+                    #ff6b6b;
+
+            color: white;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+
+        .routePopupButton:hover {
+
+            background:
+                    #ee5a5a;
+        }
+
     </style>
+
 </head>
 
+
 <body>
+
+
 <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- =====================================================
+     PAWCONNECT CONTROL PANEL
+     ===================================================== -->
+
+<div id="pawControls">
+
+    <h3>
+        🐾 PawConnect Map
+    </h3>
+
+
+    <!-- Filters -->
+
+    <div class="filterRow">
+
+        <button
+                id="allButton"
+                class="filterButton active">
+
+            All
+
+        </button>
+
+
+        <button
+                id="vetButton"
+                class="filterButton">
+
+            🏥 Vets
+
+        </button>
+
+
+        <button
+                id="shopButton"
+                class="filterButton">
+
+            🛒 Shops
+
+        </button>
+
+    </div>
+
+
+    <!-- Location controls -->
+
+    <div class="locationActions">
+
+        <button
+                id="useLocationButton"
+                class="locationButton"
+                onclick="requestDeviceLocation()">
+
+            📍 Use My Location
+
+        </button>
+
+
+        <div class="locationHint">
+
+            Or click anywhere on the map
+            to place your location manually.
+
+        </div>
+
+    </div>
+
+
+    <!-- Location status -->
+
+    <div id="locationInfo">
+
+        No location selected yet.
+
+    </div>
+
+
+    <!-- Route status -->
+
+    <div id="routePanel">
+
+        <h4>
+            🚗 Route
+        </h4>
+
+
+        <div id="routeDestination"></div>
+
+
+        <div id="routeDetails"></div>
+
+
+        <div id="routeError"></div>
+
+
+        <button
+                class="clearRouteButton"
+                onclick="clearRoute()">
+
+            ✕ Clear Route
+
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script
+        src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js">
+</script>
+
 
 <script>
-    let map = L.map('map').setView([23.7465, 90.3760], 14);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: 'OpenStreetMap'
-    }).addTo(map);
+    /*
+     * ======================================================
+     * DEFAULT VIEW
+     * ======================================================
+     */
 
-    let markers = [];
+    const DEFAULT_LAT =
+        23.8103;
 
-    function clearMarkers() {
-        markers.forEach(m => map.removeLayer(m));
-        markers = [];
+    const DEFAULT_LNG =
+        90.4125;
+
+
+    /*
+     * ======================================================
+     * MAP INITIALIZATION
+     * ======================================================
+     */
+
+    const map =
+        L.map(
+            "map",
+            {
+
+                zoomAnimation:
+                    false,
+
+                fadeAnimation:
+                    false,
+
+                markerZoomAnimation:
+                    false,
+
+                inertia:
+                    false,
+
+                zoomControl:
+                    true
+
+            }
+        );
+
+
+    map.setView(
+
+        [
+            DEFAULT_LAT,
+            DEFAULT_LNG
+        ],
+
+        12,
+
+        {
+            animate:
+                false
+        }
+    );
+
+
+    /*
+     * Keep using the canonical OpenStreetMap tile URL.
+     *
+     * IMPORTANT:
+     * We no longer force tileLayer.redraw().
+     */
+
+    const osmLayer =
+        L.tileLayer(
+
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+            {
+
+                maxZoom:
+                    19,
+
+                updateWhenIdle:
+                    true,
+
+                updateWhenZooming:
+                    false,
+
+                keepBuffer:
+                    2,
+
+                attribution:
+                    '&copy; OpenStreetMap contributors'
+            }
+        );
+
+
+    osmLayer.addTo(
+        map
+    );
+
+
+    /*
+     * ======================================================
+     * MARKER LAYERS
+     * ======================================================
+     */
+
+    const vetLayer =
+        L.layerGroup()
+            .addTo(map);
+
+
+    const shopLayer =
+        L.layerGroup()
+            .addTo(map);
+
+
+    /*
+     * User location marker.
+     */
+
+    let userMarker =
+        null;
+
+
+    /*
+     * Current route line.
+     */
+
+    let routeLayer =
+        null;
+
+
+    let currentFilter =
+        "all";
+
+
+    /*
+     * ======================================================
+     * CUSTOM ICONS
+     * ======================================================
+     */
+
+    function createIcon(
+        emoji,
+        cssClass
+    ) {
+
+        return L.divIcon({
+
+            className:
+                "",
+
+            html:
+
+                '<div class="pawMarker '
+                + cssClass
+                + '">'
+                + emoji
+                + '</div>',
+
+            iconSize:
+                [
+                    44,
+                    44
+                ],
+
+            iconAnchor:
+                [
+                    22,
+                    22
+                ],
+
+            popupAnchor:
+                [
+                    0,
+                    -22
+                ]
+        });
     }
 
-    function showArea(area, lat, lng) {
-        clearMarkers();
 
-        map.setView([lat, lng], 15);
+    const vetIcon =
+        createIcon(
+            "🏥",
+            "vetMarker"
+        );
 
-        let userMarker = L.marker([lat, lng])
-            .addTo(map)
-            .bindPopup("Selected location: " + area)
-            .openPopup();
 
-        markers.push(userMarker);
+    const emergencyIcon =
+        createIcon(
+            "🚨",
+            "emergencyMarker"
+        );
 
-        if (area === "Dhanmondi") {
-            addVet("Dhanmondi Pet Care", 23.7461, 90.3742);
-            addVet("Animal Care Dhanmondi", 23.7480, 90.3775);
-            addVet("Pet Clinic 27", 23.7510, 90.3735);
+
+    const shopIcon =
+        createIcon(
+            "🛒",
+            "shopMarker"
+        );
+
+
+    const userIcon =
+        createIcon(
+            "📍",
+            "userMarker"
+        );
+
+
+    /*
+     * ======================================================
+     * GENERAL HELPERS
+     * ======================================================
+     */
+
+    function escapeHtml(value) {
+
+        if (
+            value === null
+            ||
+            value === undefined
+        ) {
+
+            return "";
         }
 
-        if (area === "Uttara") {
-            addVet("Uttara Vet Clinic", 23.8759, 90.3795);
-            addVet("Pet Care Uttara", 23.8728, 90.3812);
-            addVet("Animal Health Center Uttara", 23.8784, 90.3768);
+
+        return String(value)
+
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+
+            .replace(
+                /</g,
+                "&lt;"
+            )
+
+            .replace(
+                />/g,
+                "&gt;"
+            )
+
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+    }
+
+
+    function validCoordinate(
+        lat,
+        lng
+    ) {
+
+        return Number.isFinite(lat)
+            &&
+            Number.isFinite(lng)
+            &&
+            lat >= -90
+            &&
+            lat <= 90
+            &&
+            lng >= -180
+            &&
+            lng <= 180
+            &&
+            !(
+                lat === 0
+                &&
+                lng === 0
+            );
+    }
+
+
+    function updateLocationInfo(
+        html
+    ) {
+
+        const element =
+            document.getElementById(
+                "locationInfo"
+            );
+
+
+        if (!element) {
+
+            return;
         }
 
-        setTimeout(function () {
-            map.invalidateSize();
-        }, 300);
+
+        element.innerHTML =
+            html;
     }
 
-    function addVet(name, lat, lng) {
-        let marker = L.marker([lat, lng])
-            .addTo(map)
-            .bindPopup("🏥 " + name);
 
-        markers.push(marker);
+    /*
+     * ======================================================
+     * LOAD VETS + SHOPS
+     *
+     * Called by MapController.java
+     * ======================================================
+     */
+
+    function loadPawConnectData(
+        vets,
+        shops
+    ) {
+
+        vetLayer.clearLayers();
+
+        shopLayer.clearLayers();
+
+
+        const markerCoordinates =
+            [];
+
+
+        /*
+         * ==================================================
+         * VETS
+         * ==================================================
+         */
+
+        if (Array.isArray(vets)) {
+
+            vets.forEach(
+
+                function(
+                    vet,
+                    index
+                ) {
+
+                    const lat =
+                        Number(
+                            vet.latitude
+                        );
+
+
+                    const lng =
+                        Number(
+                            vet.longitude
+                        );
+
+
+                    if (
+                        !validCoordinate(
+                            lat,
+                            lng
+                        )
+                    ) {
+
+                        return;
+                    }
+
+
+                    const emergency =
+                        vet.emergency === true;
+
+
+                    const icon =
+                        emergency
+                            ?
+                            emergencyIcon
+                            :
+                            vetIcon;
+
+
+                    const marker =
+                        L.marker(
+
+                            [
+                                lat,
+                                lng
+                            ],
+
+                            {
+                                icon:
+                                icon
+                            }
+                        );
+
+
+                    const rawTitle =
+                        vet.name
+                        ||
+                        "Veterinary Clinic";
+
+
+                    const title =
+                        escapeHtml(
+                            rawTitle
+                        );
+
+
+                    const address =
+                        escapeHtml(
+                            vet.address
+                            ||
+                            ""
+                        );
+
+
+                    const phone =
+                        escapeHtml(
+                            vet.phone
+                            ||
+                            "Not available"
+                        );
+
+
+                    const hours =
+                        escapeHtml(
+                            vet.openHours
+                            ||
+                            "Not available"
+                        );
+
+
+                    const rating =
+                        escapeHtml(
+                            vet.rating
+                            ??
+                            "N/A"
+                        );
+
+
+                    /*
+                     * Unique route button ID.
+                     */
+
+                    const buttonId =
+                        "routeVetButton_"
+                        +
+                        index;
+
+
+                    marker.bindPopup(`
+
+                        <div class="pawPopup">
+
+                            <span class="typeBadge">
+
+                                ${
+                        emergency
+                            ?
+                            "🚨 Emergency Vet"
+                            :
+                            "🏥 Veterinary Clinic"
+                    }
+
+                            </span>
+
+
+                            <h3>
+                                ${title}
+                            </h3>
+
+
+                            <p>
+
+                                ⭐
+
+                                <strong>
+                                    ${rating}
+                                </strong>
+
+                            </p>
+
+
+                            <p>
+                                📍 ${address}
+                            </p>
+
+
+                            <p>
+                                📞 ${phone}
+                            </p>
+
+
+                            <p>
+                                🕒 ${hours}
+                            </p>
+
+
+                            <button
+                                    id="${buttonId}"
+                                    class="routePopupButton">
+
+                                🚗 Show Route
+
+                            </button>
+
+                        </div>
+
+                    `);
+
+
+                    /*
+                     * Attach click handler AFTER Leaflet
+                     * has created the popup DOM.
+                     *
+                     * This avoids escaping business names
+                     * inside an inline onclick attribute.
+                     */
+
+                    marker.on(
+
+                        "popupopen",
+
+                        function() {
+
+                            const button =
+                                document.getElementById(
+                                    buttonId
+                                );
+
+
+                            if (button) {
+
+                                button.onclick =
+                                    function(event) {
+
+                                        if (event) {
+
+                                            event.stopPropagation();
+                                        }
+
+
+                                        requestRouteTo(
+
+                                            lat,
+
+                                            lng,
+
+                                            rawTitle,
+
+                                            emergency
+                                                ?
+                                                "Emergency Vet"
+                                                :
+                                                "Veterinary Clinic"
+                                        );
+                                    };
+                            }
+                        }
+                    );
+
+
+                    marker.addTo(
+                        vetLayer
+                    );
+
+
+                    markerCoordinates.push(
+
+                        [
+                            lat,
+                            lng
+                        ]
+                    );
+                }
+            );
+        }
+
+
+        /*
+         * ==================================================
+         * SHOPS
+         * ==================================================
+         */
+
+        if (Array.isArray(shops)) {
+
+            shops.forEach(
+
+                function(
+                    shop,
+                    index
+                ) {
+
+                    const lat =
+                        Number(
+                            shop.latitude
+                        );
+
+
+                    const lng =
+                        Number(
+                            shop.longitude
+                        );
+
+
+                    if (
+                        !validCoordinate(
+                            lat,
+                            lng
+                        )
+                    ) {
+
+                        return;
+                    }
+
+
+                    const marker =
+                        L.marker(
+
+                            [
+                                lat,
+                                lng
+                            ],
+
+                            {
+                                icon:
+                                shopIcon
+                            }
+                        );
+
+
+                    const rawTitle =
+                        shop.name
+                        ||
+                        "Cat Shop";
+
+
+                    const title =
+                        escapeHtml(
+                            rawTitle
+                        );
+
+
+                    const address =
+                        escapeHtml(
+                            shop.address
+                            ||
+                            ""
+                        );
+
+
+                    const phone =
+                        escapeHtml(
+                            shop.phone
+                            ||
+                            "Not available"
+                        );
+
+
+                    const hours =
+                        escapeHtml(
+                            shop.openHours
+                            ||
+                            "Not available"
+                        );
+
+
+                    const rating =
+                        escapeHtml(
+                            shop.rating
+                            ??
+                            "N/A"
+                        );
+
+
+                    const buttonId =
+                        "routeShopButton_"
+                        +
+                        index;
+
+
+                    marker.bindPopup(`
+
+                        <div class="pawPopup">
+
+                            <span class="typeBadge">
+                                🛒 Cat Shop
+                            </span>
+
+
+                            <h3>
+                                ${title}
+                            </h3>
+
+
+                            <p>
+
+                                ⭐
+
+                                <strong>
+                                    ${rating}
+                                </strong>
+
+                            </p>
+
+
+                            <p>
+                                📍 ${address}
+                            </p>
+
+
+                            <p>
+                                📞 ${phone}
+                            </p>
+
+
+                            <p>
+                                🕒 ${hours}
+                            </p>
+
+
+                            <button
+                                    id="${buttonId}"
+                                    class="routePopupButton">
+
+                                🚗 Show Route
+
+                            </button>
+
+                        </div>
+
+                    `);
+
+
+                    marker.on(
+
+                        "popupopen",
+
+                        function() {
+
+                            const button =
+                                document.getElementById(
+                                    buttonId
+                                );
+
+
+                            if (button) {
+
+                                button.onclick =
+                                    function(event) {
+
+                                        if (event) {
+
+                                            event.stopPropagation();
+                                        }
+
+
+                                        requestRouteTo(
+
+                                            lat,
+
+                                            lng,
+
+                                            rawTitle,
+
+                                            "Cat Shop"
+                                        );
+                                    };
+                            }
+                        }
+                    );
+
+
+                    marker.addTo(
+                        shopLayer
+                    );
+
+
+                    markerCoordinates.push(
+
+                        [
+                            lat,
+                            lng
+                        ]
+                    );
+                }
+            );
+        }
+
+
+        /*
+         * On first database load, show all locations.
+         *
+         * MapController will afterwards restore the
+         * Session user location and recenter there.
+         */
+
+        if (
+            markerCoordinates.length > 0
+            &&
+            !userMarker
+        ) {
+
+            const bounds =
+                L.latLngBounds(
+                    markerCoordinates
+                );
+
+
+            map.fitBounds(
+
+                bounds,
+
+                {
+
+                    padding:
+                        [
+                            70,
+                            70
+                        ],
+
+                    maxZoom:
+                        14,
+
+                    animate:
+                        false
+                }
+            );
+        }
+
+
+        refreshMap();
     }
 
-    setTimeout(function () {
-        map.invalidateSize();
-        showArea("Dhanmondi", 23.7465, 90.3760);
-    }, 500);
+
+    /*
+     * ======================================================
+     * USER LOCATION
+     * ======================================================
+     */
+
+    function setUserLocation(
+        latitude,
+        longitude,
+        notifyJava
+    ) {
+
+        const lat =
+            Number(
+                latitude
+            );
+
+
+        const lng =
+            Number(
+                longitude
+            );
+
+
+        if (
+            !validCoordinate(
+                lat,
+                lng
+            )
+        ) {
+
+            return;
+        }
+
+
+        /*
+         * Location changed.
+         *
+         * Any existing route is now stale because its
+         * starting point was the previous user location.
+         */
+
+        if (routeLayer) {
+
+            clearRoute();
+        }
+
+
+        if (userMarker) {
+
+            userMarker.setLatLng(
+
+                [
+                    lat,
+                    lng
+                ]
+            );
+
+        } else {
+
+            userMarker =
+                L.marker(
+
+                    [
+                        lat,
+                        lng
+                    ],
+
+                    {
+
+                        icon:
+                        userIcon,
+
+                        zIndexOffset:
+                            1000
+                    }
+                )
+
+                    .addTo(
+                        map
+                    )
+
+                    .bindPopup(
+                        "<strong>📍 Your location</strong>"
+                    );
+        }
+
+
+        updateLocationInfo(
+
+            "<strong>📍 Your location</strong>"
+            +
+            "<br>Latitude: "
+            +
+            lat.toFixed(5)
+            +
+            "<br>Longitude: "
+            +
+            lng.toFixed(5)
+        );
+
+
+        /*
+         * Tell Java only when this location originated
+         * from an actual map click.
+         */
+
+        if (
+            notifyJava
+            &&
+            window.javaBridge
+            &&
+            window.javaBridge.setUserLocation
+        ) {
+
+            try {
+
+                window.javaBridge
+                    .setUserLocation(
+                        lat,
+                        lng
+                    );
+
+            } catch (error) {
+
+                console.log(
+                    "Java bridge error:",
+                    error
+                );
+            }
+        }
+    }
+
+
+    /*
+     * Called from MapController when reading Session.
+     */
+
+    function setUserLocationFromJava(
+        latitude,
+        longitude
+    ) {
+
+        setUserLocation(
+            latitude,
+            longitude,
+            false
+        );
+    }
+
+
+    /*
+     * Manual location selection.
+     */
+
+    map.on(
+
+        "click",
+
+        function(event) {
+
+            const lat =
+                Number(
+                    event.latlng.lat
+                );
+
+
+            const lng =
+                Number(
+                    event.latlng.lng
+                );
+
+
+            setUserLocation(
+                lat,
+                lng,
+                true
+            );
+
+
+            if (userMarker) {
+
+                userMarker.bindPopup(
+
+                    "<strong>📍 Your selected location</strong>"
+                    +
+                    "<br>"
+                    +
+                    lat.toFixed(5)
+                    +
+                    ", "
+                    +
+                    lng.toFixed(5)
+                );
+
+
+                userMarker.openPopup();
+            }
+
+
+            updateLocationInfo(
+
+                "<strong>📍 Pinned location</strong>"
+                +
+                "<br>Latitude: "
+                +
+                lat.toFixed(5)
+                +
+                "<br>Longitude: "
+                +
+                lng.toFixed(5)
+            );
+        }
+    );
+
+
+    /*
+     * ======================================================
+     * DEVICE LOCATION
+     * ======================================================
+     */
+
+    function requestDeviceLocation() {
+
+        if (
+            window.javaBridge
+            &&
+            window.javaBridge.requestDeviceLocation
+        ) {
+
+            deviceLocationLoading(
+                true
+            );
+
+
+            window.javaBridge
+                .requestDeviceLocation();
+
+
+            return;
+        }
+
+
+        updateLocationInfo(
+
+            "⚠ Device location bridge is unavailable."
+        );
+    }
+
+
+    function deviceLocationLoading(
+        loading
+    ) {
+
+        const button =
+            document.getElementById(
+                "useLocationButton"
+            );
+
+
+        if (!button) {
+
+            return;
+        }
+
+
+        button.disabled =
+            loading;
+
+
+        button.textContent =
+            loading
+                ?
+                "⏳ Locating..."
+                :
+                "📍 Use My Location";
+    }
+
+
+    /*
+     * Called from Java after Windows location lookup.
+     */
+
+    function deviceLocationResult(
+        latitude,
+        longitude,
+        success,
+        message
+    ) {
+
+        deviceLocationLoading(
+            false
+        );
+
+
+        if (!success) {
+
+            updateLocationInfo(
+
+                "⚠ "
+                +
+                (
+                    message
+                    ||
+                    "Could not detect your location."
+                )
+                +
+                "<br><br>"
+                +
+                "You can still click the map "
+                +
+                "to place your location manually."
+            );
+
+
+            return;
+        }
+
+
+        latitude =
+            Number(
+                latitude
+            );
+
+
+        longitude =
+            Number(
+                longitude
+            );
+
+
+        if (
+            !validCoordinate(
+                latitude,
+                longitude
+            )
+        ) {
+
+            updateLocationInfo(
+                "⚠ Invalid coordinates received."
+            );
+
+
+            return;
+        }
+
+
+        /*
+         * Java has already stored this in Session.
+         */
+
+        setUserLocation(
+            latitude,
+            longitude,
+            false
+        );
+
+
+        map.setView(
+
+            [
+                latitude,
+                longitude
+            ],
+
+            16,
+
+            {
+                animate:
+                    false
+            }
+        );
+
+
+        if (userMarker) {
+
+            userMarker.bindPopup(
+
+                "<strong>📍 Your current location</strong>"
+                +
+                "<br>"
+                +
+                latitude.toFixed(5)
+                +
+                ", "
+                +
+                longitude.toFixed(5)
+            );
+
+
+            userMarker.openPopup();
+        }
+
+
+        updateLocationInfo(
+
+            "<strong>📍 Current location</strong>"
+            +
+            "<br>Latitude: "
+            +
+            latitude.toFixed(5)
+            +
+            "<br>Longitude: "
+            +
+            longitude.toFixed(5)
+        );
+
+
+        refreshMap();
+    }
+
+
+    /*
+     * ======================================================
+     * ROUTING
+     * ======================================================
+     */
+
+
+    /*
+     * Called when user presses Show Route
+     * inside a vet/shop popup.
+     */
+
+    function requestRouteTo(
+        destinationLat,
+        destinationLng,
+        destinationName,
+        destinationType
+    ) {
+
+        destinationLat =
+            Number(
+                destinationLat
+            );
+
+
+        destinationLng =
+            Number(
+                destinationLng
+            );
+
+
+        if (
+            !validCoordinate(
+                destinationLat,
+                destinationLng
+            )
+        ) {
+
+            showRouteError(
+                "This location does not have valid coordinates."
+            );
+
+
+            return;
+        }
+
+
+        /*
+         * Route requires a user starting location.
+         */
+
+        if (!userMarker) {
+
+            showRouteError(
+
+                "Set your location first. "
+                +
+                "Click the map or use "
+                +
+                "\"Use My Location\"."
+            );
+
+
+            updateLocationInfo(
+
+                "⚠ Set your location before requesting a route."
+            );
+
+
+            return;
+        }
+
+
+        if (
+            !window.javaBridge
+            ||
+            !window.javaBridge.requestRoute
+        ) {
+
+            showRouteError(
+                "Route service bridge is unavailable."
+            );
+
+
+            return;
+        }
+
+
+        /*
+         * Show loading panel immediately.
+         */
+
+        showRouteLoading(
+            destinationName
+        );
+
+
+        /*
+         * Close marker popup so the route becomes easier
+         * to see.
+         */
+
+        map.closePopup();
+
+
+        try {
+
+            window.javaBridge.requestRoute(
+
+                destinationLat,
+
+                destinationLng,
+
+                String(
+                    destinationName
+                    ||
+                    "Destination"
+                ),
+
+                String(
+                    destinationType
+                    ||
+                    "Destination"
+                )
+            );
+
+
+        } catch (error) {
+
+            console.log(
+                "Route bridge error:",
+                error
+            );
+
+
+            showRouteError(
+                "Could not request the route."
+            );
+        }
+    }
+
+
+    /*
+     * Loading state.
+     */
+
+    function showRouteLoading(
+        destinationName
+    ) {
+
+        const panel =
+            document.getElementById(
+                "routePanel"
+            );
+
+
+        const destination =
+            document.getElementById(
+                "routeDestination"
+            );
+
+
+        const details =
+            document.getElementById(
+                "routeDetails"
+            );
+
+
+        const error =
+            document.getElementById(
+                "routeError"
+            );
+
+
+        panel.style.display =
+            "block";
+
+
+        destination.textContent =
+            destinationName
+            ||
+            "Destination";
+
+
+        details.innerHTML =
+            "⏳ Calculating driving route...";
+
+
+        error.textContent =
+            "";
+    }
+
+
+    /*
+     * Called from MapController after backend / OSRM
+     * returns a successful route.
+     */
+
+    function showRouteResult(
+        routeData,
+        destinationLat,
+        destinationLng,
+        destinationName,
+        destinationType
+    ) {
+
+        if (
+            !routeData
+            ||
+            routeData.success !== true
+            ||
+            !routeData.geometry
+        ) {
+
+            showRouteError(
+                "Route data was invalid."
+            );
+
+
+            return;
+        }
+
+
+        /*
+         * Remove previous route without hiding
+         * the route panel.
+         */
+
+        if (routeLayer) {
+
+            map.removeLayer(
+                routeLayer
+            );
+
+
+            routeLayer =
+                null;
+        }
+
+
+        /*
+         * Backend returns GeoJSON from OSRM.
+         *
+         * Leaflet understands GeoJSON coordinates in
+         * longitude,latitude order automatically.
+         */
+
+        routeLayer =
+            L.geoJSON(
+
+                routeData.geometry,
+
+                {
+
+                    style: {
+
+                        color:
+                            "#ff6b6b",
+
+                        weight:
+                            6,
+
+                        opacity:
+                            0.90,
+
+                        lineCap:
+                            "round",
+
+                        lineJoin:
+                            "round"
+                    }
+                }
+            );
+
+
+        routeLayer.addTo(
+            map
+        );
+
+
+        /*
+         * Fit map around entire road route.
+         */
+
+        const bounds =
+            routeLayer.getBounds();
+
+
+        if (
+            bounds
+            &&
+            bounds.isValid()
+        ) {
+
+            map.fitBounds(
+
+                bounds,
+
+                {
+
+                    padding:
+                        [
+                            55,
+                            55
+                        ],
+
+                    maxZoom:
+                        16,
+
+                    animate:
+                        false
+                }
+            );
+        }
+
+
+        /*
+         * Route summary.
+         */
+
+        const distanceKm =
+            Number(
+                routeData.distanceKm
+            );
+
+
+        const durationMinutes =
+            Number(
+                routeData.durationMinutes
+            );
+
+
+        const panel =
+            document.getElementById(
+                "routePanel"
+            );
+
+
+        const destination =
+            document.getElementById(
+                "routeDestination"
+            );
+
+
+        const details =
+            document.getElementById(
+                "routeDetails"
+            );
+
+
+        const error =
+            document.getElementById(
+                "routeError"
+            );
+
+
+        panel.style.display =
+            "block";
+
+
+        destination.textContent =
+
+            "To "
+            +
+            (
+                destinationName
+                ||
+                "Destination"
+            );
+
+
+        let detailHtml =
+
+            "📍 "
+            +
+            escapeHtml(
+                destinationType
+                ||
+                "Destination"
+            );
+
+
+        if (
+            Number.isFinite(
+                distanceKm
+            )
+        ) {
+
+            detailHtml +=
+
+                "<br>🚗 Distance: "
+                +
+                distanceKm.toFixed(1)
+                +
+                " km";
+        }
+
+
+        if (
+            Number.isFinite(
+                durationMinutes
+            )
+        ) {
+
+            const roundedMinutes =
+                Math.max(
+                    1,
+                    Math.round(
+                        durationMinutes
+                    )
+                );
+
+
+            detailHtml +=
+
+                "<br>⏱ Estimated time: "
+                +
+                roundedMinutes
+                +
+                " min";
+        }
+
+
+        details.innerHTML =
+            detailHtml;
+
+
+        error.textContent =
+            "";
+
+
+        refreshMap();
+    }
+
+
+    /*
+     * Called by Java if routing fails.
+     */
+
+    function showRouteError(
+        message
+    ) {
+
+        /*
+         * Remove stale route line.
+         */
+
+        if (routeLayer) {
+
+            map.removeLayer(
+                routeLayer
+            );
+
+
+            routeLayer =
+                null;
+        }
+
+
+        const panel =
+            document.getElementById(
+                "routePanel"
+            );
+
+
+        const details =
+            document.getElementById(
+                "routeDetails"
+            );
+
+
+        const error =
+            document.getElementById(
+                "routeError"
+            );
+
+
+        panel.style.display =
+            "block";
+
+
+        details.innerHTML =
+            "";
+
+
+        error.textContent =
+            message
+            ||
+            "Could not calculate route.";
+    }
+
+
+    /*
+     * User clears current route.
+     */
+
+    function clearRoute() {
+
+        if (routeLayer) {
+
+            map.removeLayer(
+                routeLayer
+            );
+
+
+            routeLayer =
+                null;
+        }
+
+
+        const panel =
+            document.getElementById(
+                "routePanel"
+            );
+
+
+        if (panel) {
+
+            panel.style.display =
+                "none";
+        }
+
+
+        const destination =
+            document.getElementById(
+                "routeDestination"
+            );
+
+
+        const details =
+            document.getElementById(
+                "routeDetails"
+            );
+
+
+        const error =
+            document.getElementById(
+                "routeError"
+            );
+
+
+        if (destination) {
+
+            destination.textContent =
+                "";
+        }
+
+
+        if (details) {
+
+            details.innerHTML =
+                "";
+        }
+
+
+        if (error) {
+
+            error.textContent =
+                "";
+        }
+
+
+        refreshMap();
+    }
+
+
+    /*
+     * ======================================================
+     * FILTERS
+     * ======================================================
+     */
+
+    const allButton =
+        document.getElementById(
+            "allButton"
+        );
+
+
+    const vetButton =
+        document.getElementById(
+            "vetButton"
+        );
+
+
+    const shopButton =
+        document.getElementById(
+            "shopButton"
+        );
+
+
+    function setFilter(
+        filter
+    ) {
+
+        currentFilter =
+            filter;
+
+
+        if (
+            map.hasLayer(
+                vetLayer
+            )
+        ) {
+
+            map.removeLayer(
+                vetLayer
+            );
+        }
+
+
+        if (
+            map.hasLayer(
+                shopLayer
+            )
+        ) {
+
+            map.removeLayer(
+                shopLayer
+            );
+        }
+
+
+        if (
+            filter === "all"
+        ) {
+
+            vetLayer.addTo(
+                map
+            );
+
+
+            shopLayer.addTo(
+                map
+            );
+
+        } else if (
+            filter === "vets"
+        ) {
+
+            vetLayer.addTo(
+                map
+            );
+
+        } else if (
+            filter === "shops"
+        ) {
+
+            shopLayer.addTo(
+                map
+            );
+        }
+
+
+        allButton
+            .classList
+            .toggle(
+                "active",
+                filter === "all"
+            );
+
+
+        vetButton
+            .classList
+            .toggle(
+                "active",
+                filter === "vets"
+            );
+
+
+        shopButton
+            .classList
+            .toggle(
+                "active",
+                filter === "shops"
+            );
+
+
+        refreshMap();
+    }
+
+
+    allButton.addEventListener(
+
+        "click",
+
+        function(event) {
+
+            event.stopPropagation();
+
+
+            setFilter(
+                "all"
+            );
+        }
+    );
+
+
+    vetButton.addEventListener(
+
+        "click",
+
+        function(event) {
+
+            event.stopPropagation();
+
+
+            setFilter(
+                "vets"
+            );
+        }
+    );
+
+
+    shopButton.addEventListener(
+
+        "click",
+
+        function(event) {
+
+            event.stopPropagation();
+
+
+            setFilter(
+                "shops"
+            );
+        }
+    );
+
+
+    /*
+     * Prevent control panel clicks from placing
+     * a new user marker.
+     */
+
+    const controlPanel =
+        document.getElementById(
+            "pawControls"
+        );
+
+
+    L.DomEvent
+        .disableClickPropagation(
+            controlPanel
+        );
+
+
+    L.DomEvent
+        .disableScrollPropagation(
+            controlPanel
+        );
+
+
+    /*
+     * ======================================================
+     * JAVAFX WEBVIEW MAP RESIZE
+     * ======================================================
+     *
+     * IMPORTANT:
+     *
+     * DO NOT call osmLayer.redraw().
+     *
+     * We only invalidate dimensions so OSM tiles are not
+     * repeatedly downloaded.
+     */
+
+    function refreshMap() {
+
+        try {
+
+            map.invalidateSize(
+                {
+                    animate:
+                        false,
+
+                    pan:
+                        false
+                }
+            );
+
+        } catch (error) {
+
+            console.log(
+                "Map refresh error:",
+                error
+            );
+        }
+    }
+
+
+    setTimeout(
+        refreshMap,
+        100
+    );
+
+
+    setTimeout(
+        refreshMap,
+        400
+    );
+
+
+    /*
+     * ======================================================
+     * EXPOSE TO JAVAFX
+     * ======================================================
+     */
+
+    window.pawMap =
+        map;
+
+
+    window.pawMapTileLayer =
+        osmLayer;
+
+
 </script>
+
+
 </body>
+
 </html>

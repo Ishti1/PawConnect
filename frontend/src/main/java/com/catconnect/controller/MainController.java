@@ -19,9 +19,6 @@ import javafx.fxml.FXMLLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class MainController {
 
@@ -60,8 +57,7 @@ public class MainController {
     private String currentScreenKey;
     private Parent homeContent;
     private ChatController chatScreenController;
-    private HomeController homeController;
-    private ScheduledExecutorService notificationPoller;
+
 
     @FXML
     public void initialize() {
@@ -79,50 +75,6 @@ public class MainController {
 
         setActive(btnHome);
         renderHome();
-        startNotificationPoller();
-    }
-    
-    private void startNotificationPoller() {
-        if (notificationPoller == null) {
-            notificationPoller = Executors.newSingleThreadScheduledExecutor();
-            notificationPoller.scheduleWithFixedDelay(() -> {
-                if (Session.getToken() == null) return;
-                try {
-                    JsonNode data = ApiClient.get().getList("/notifications/unread");
-                    Platform.runLater(() -> processNotifications(data));
-                } catch (Exception e) {}
-            }, 2, 3, TimeUnit.SECONDS);
-        }
-    }
-
-    private void processNotifications(JsonNode unread) {
-        boolean hasChat = false;
-        java.util.Set<Long> unreadSenderIds = new java.util.HashSet<>();
-        
-        for (JsonNode n : unread) {
-            if ("CHAT".equals(n.path("type").asText())) {
-                hasChat = true;
-                if (!n.path("relatedId").isNull() && !n.path("relatedId").isMissingNode()) {
-                    unreadSenderIds.add(n.path("relatedId").asLong());
-                }
-            }
-        }
-        
-        if (hasChat) {
-            if (!btnChat.getStyleClass().contains("chat-glow")) {
-                btnChat.getStyleClass().add("chat-glow");
-            }
-        } else {
-            btnChat.getStyleClass().remove("chat-glow");
-        }
-
-        if (homeController != null && "home".equals(currentScreenKey)) {
-            homeController.updateNotifications(unread);
-        }
-        
-        if (chatScreenController != null) {
-            chatScreenController.updateUnreadStatuses(unreadSenderIds);
-        }
     }
     
     private void expandSidebar() {
@@ -285,10 +237,7 @@ public class MainController {
         screenCache.clear();
         controllerCache.clear();
         currentScreenKey = null;
-        if (notificationPoller != null) {
-            notificationPoller.shutdownNow();
-            notificationPoller = null;
-        }
+        homeContent = null;
         Session.clear();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
@@ -489,11 +438,11 @@ public class MainController {
     private void renderHome() {
         if (homeContent == null) {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/home.fxml"));
-                homeContent = loader.load();
-                homeController = loader.getController();
+                // Load your brand new home.fxml file instead of building it manually
+                homeContent = FXMLLoader.load(getClass().getResource("/fxml/home.fxml"));
             } catch (Exception e) {
                 e.printStackTrace();
+                // Fallback in case the FXML file fails to load
                 homeContent = new VBox(new Label("Error loading home screen."));
             }
         }
