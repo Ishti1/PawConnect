@@ -1,42 +1,34 @@
 package com.catconnect.controller;
 
+import com.catconnect.service.ApiClient;
 import com.fasterxml.jackson.databind.JsonNode;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
 import java.io.File;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.layout.HBox;
-import javafx.scene.web.WebView;
-import javafx.scene.web.WebEngine;
-import netscape.javascript.JSObject;
-import javafx.scene.layout.StackPane;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.URI;
-import java.time.Duration;
-import java.util.List;
-import java.util.ArrayList;
 
 
 public class VetsController extends BaseListController {
 
     @FXML private Label screenTitle;
     @FXML private VBox addForm;
-    @FXML private TextField nameField, addressField, phoneField, hoursField, cityField, websiteField, imageUrlField, ratingField;
+    @FXML private TextField nameField, addressField, phoneField, hoursField, cityField, websiteField, imageUrlField;
     @FXML private CheckBox emergencyBox;
     @FXML private ImageView photoPreview;
     @FXML private Label photoLabel;
-    @FXML private Label userLocationLabel;
+    @FXML private ComboBox<String> locationBox;
     @FXML private Button addVetButton;
     @FXML private VBox adminActionBar;
     @FXML private TextField searchField;
     @FXML private ComboBox<String> categoryBox;
-    
     private boolean emergencyOnly;
     private Boolean lastEmergencyMode;
     private Long editingId;
@@ -73,22 +65,18 @@ public class VetsController extends BaseListController {
         }
 
 
-        if (userLocationLabel != null) {
-            String selected = com.catconnect.util.Session.getSelectedLocation();
-            if (selected != null && !selected.trim().isEmpty() && !"All".equalsIgnoreCase(selected)) {
-                userLocationLabel.setText("📍 Location: " + selected);
-            } else {
-                userLocationLabel.setText("📍 Showing all locations");
-            }
+        if (locationBox != null) {
+            locationBox.getItems().setAll("All", "Dhanmondi", "Uttara");
+            locationBox.setValue("All");
         }
         if (adminActionBar != null) {
             adminActionBar.setVisible(isAdmin());
             adminActionBar.setManaged(isAdmin());
         }
 
+
         loadData();
     }
-    
     @FXML
     private void onSearch() {
         resetListState();
@@ -115,35 +103,14 @@ public class VetsController extends BaseListController {
         resetListState();
         loadData();
     }
-
-    @Override
-    protected void onRefreshData() {
-        if (userLocationLabel != null) {
-            String selected = com.catconnect.util.Session.getSelectedLocation();
-            if (selected != null && !selected.trim().isEmpty() && !"All".equalsIgnoreCase(selected)) {
-                userLocationLabel.setText("📍 Location: " + selected);
-            } else {
-                userLocationLabel.setText("📍 Showing all locations");
-            }
-        }
-    }
     private boolean isAdmin() {
         return com.catconnect.util.Session.getCurrentUser() != null
                 && com.catconnect.util.Session.getCurrentUser().isAdmin();
     }
     @Override
     protected String getApiPath() {
-        String base = emergencyOnly ? "/vets/emergency" : "/vets";
-        String loc = com.catconnect.util.Session.getSelectedLocation();
-        if (loc != null && !loc.trim().isEmpty() && !"All".equalsIgnoreCase(loc)) {
-            try {
-                return base + "?location=" + java.net.URLEncoder.encode(loc, java.nio.charset.StandardCharsets.UTF_8);
-            } catch (Exception e) {}
-        }
-        return base;
+        return emergencyOnly ? "/vets/emergency" : "/vets";
     }
-    
-
 
     @FXML
     private void onSave() {
@@ -162,11 +129,6 @@ public class VetsController extends BaseListController {
         body.put("city", city);
         body.put("mapLink", websiteField.getText().trim());
         body.put("emergency", emergencyBox.isSelected());
-        try {
-            if (!ratingField.getText().isBlank()) {
-                body.put("rating", Double.parseDouble(ratingField.getText().trim()));
-            }
-        } catch (Exception e) {}
 
         if ("Dhanmondi".equalsIgnoreCase(city)) {
             body.put("latitude", 23.7465);
@@ -202,29 +164,19 @@ public class VetsController extends BaseListController {
 
     @Override
     protected VBox buildCard(JsonNode item) {
-        String selected = com.catconnect.util.Session.getSelectedLocation();
-        if (selected == null || selected.trim().isEmpty()) {
-            selected = "All";
-        }
-        selected = selected.trim();
+        String selected = locationBox == null || locationBox.getValue() == null
+                ? "All"
+                : locationBox.getValue().trim();
 
         String city = item.path("city").asText("").trim();
         String address = item.path("address").asText("").trim();
 
-        double userLat = com.catconnect.util.Session.getUserLat();
-        double userLon = com.catconnect.util.Session.getUserLon();
-        double vetLat = item.path("latitude").asDouble(0);
-        double vetLon = item.path("longitude").asDouble(0);
-
         double distanceKm = 0;
-        if (userLat != 0 && userLon != 0 && vetLat != 0 && vetLon != 0) {
-            distanceKm = calculateDistance(userLat, userLon, vetLat, vetLon);
-        } else {
-            if ("Dhanmondi".equalsIgnoreCase(city)) {
-                distanceKm = 0.5 + Math.random() * 3;
-            } else if ("Uttara".equalsIgnoreCase(city)) {
-                distanceKm = 0.5 + Math.random() * 3;
-            }
+
+        if ("Dhanmondi".equalsIgnoreCase(city)) {
+            distanceKm = 0.5 + Math.random() * 3;
+        } else if ("Uttara".equalsIgnoreCase(city)) {
+            distanceKm = 0.5 + Math.random() * 3;
         }
 
         if (!"All".equalsIgnoreCase(selected)) {
@@ -260,9 +212,11 @@ public class VetsController extends BaseListController {
                 () -> beginEdit(item)
         );
 
-        Button mapButton = new Button("📍 Open Map");
+        card.setFillWidth(true);
+
+        Button mapButton = new Button("🐾 View on Paw Map");
         mapButton.getStyleClass().add("secondary-button");
-        mapButton.setOnAction(e -> openMap(item));
+        mapButton.setOnAction(e -> openPawMap(item));
 
         Button callButton = new Button("📞 Call");
         callButton.getStyleClass().add("primary-button");
@@ -289,27 +243,140 @@ public class VetsController extends BaseListController {
         return card;
     }
 
-    private void openMap(JsonNode item) {
-        try {
-            double lat = item.path("latitude").asDouble(0);
-            double lng = item.path("longitude").asDouble(0);
+    private void openPawMap(JsonNode item) {
+        double latitude = item.path("latitude").asDouble(0);
+        double longitude = item.path("longitude").asDouble(0);
 
-            String query;
+        String name = item.path("name").asText("Veterinary Clinic");
+        String type = item.path("emergency").asBoolean(false)
+                ? "Emergency Vet"
+                : "Veterinary Clinic";
 
-            if (lat != 0 && lng != 0) {
-                query = lat + "," + lng;
-            } else {
-                String address = item.path("address").asText("").trim();
-                String city = item.path("city").asText("").trim();
-                query = (address + " " + city).trim().replace(" ", "+");
-            }
-
-            String url = "https://www.google.com/maps/search/?api=1&query=" + query;
-            java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
-
-        } catch (Exception e) {
-            com.catconnect.util.UiHelper.showError("Could not open map.");
+        /*
+         * Most PawConnect vet records already contain coordinates.
+         * In that case we can open Paw Map immediately.
+         */
+        if (isValidMapCoordinate(latitude, longitude)) {
+            navigateToPawMap(latitude, longitude, name, type);
+            return;
         }
+
+        /*
+         * Older or newly-added records may not have coordinates yet.
+         * Fall back to the same backend geocoder used by PawConnect
+         * rather than opening Google Maps.
+         */
+        String address = item.path("address").asText("").trim();
+        String city = item.path("city").asText("").trim();
+        String query = (address + ", " + city).replaceAll("^,\\s*|,\\s*$", "").trim();
+
+        if (query.isBlank()) {
+            com.catconnect.util.UiHelper.showError(
+                    "This vet does not have a usable address or map coordinates."
+            );
+            return;
+        }
+
+        Thread geocodeThread = new Thread(() -> {
+            try {
+                String path = "/map/geocode?query="
+                        + URLEncoder.encode(query, StandardCharsets.UTF_8);
+
+                JsonNode response = ApiClient.get().getList(path);
+
+                if (response == null || !response.path("success").asBoolean(false)) {
+                    String message = response == null
+                            ? "Could not find this vet on Paw Map."
+                            : response.path("message")
+                            .asText("Could not find this vet on Paw Map.");
+
+                    Platform.runLater(() ->
+                            com.catconnect.util.UiHelper.showError(message)
+                    );
+                    return;
+                }
+
+                double geocodedLat = response.path("latitude").asDouble(0);
+                double geocodedLon = response.path("longitude").asDouble(0);
+
+                if (!isValidMapCoordinate(geocodedLat, geocodedLon)) {
+                    Platform.runLater(() ->
+                            com.catconnect.util.UiHelper.showError(
+                                    "The vet location returned invalid coordinates."
+                            )
+                    );
+                    return;
+                }
+
+                Platform.runLater(() ->
+                        navigateToPawMap(
+                                geocodedLat,
+                                geocodedLon,
+                                name,
+                                type
+                        )
+                );
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Platform.runLater(() ->
+                        com.catconnect.util.UiHelper.showError(
+                                "Could not find this vet on Paw Map."
+                        )
+                );
+            }
+        }, "paw-map-vet-geocode");
+
+        geocodeThread.setDaemon(true);
+        geocodeThread.start();
+    }
+
+    private void navigateToPawMap(
+            double latitude,
+            double longitude,
+            String name,
+            String type
+    ) {
+        MapController.setPendingTarget(
+                latitude,
+                longitude,
+                name,
+                type
+        );
+
+        MainController main = MainController.getInstance();
+
+        if (main == null) {
+            com.catconnect.util.UiHelper.showError(
+                    "Could not open Paw Map."
+            );
+            return;
+        }
+
+        main.navigateTo("map");
+
+        /*
+         * MainController performs navigation on the JavaFX thread.
+         * Queue the focus request after that navigation so cached maps
+         * are also recentered correctly.
+         */
+        Platform.runLater(
+                MapController::focusPendingTargetIfPossible
+        );
+    }
+
+    private boolean isValidMapCoordinate(
+            double latitude,
+            double longitude
+    ) {
+        return Double.isFinite(latitude)
+                && Double.isFinite(longitude)
+                && latitude >= -90
+                && latitude <= 90
+                && longitude >= -180
+                && longitude <= 180
+                && !(latitude == 0 && longitude == 0);
     }
     private void openWebsite(String url) {
         try {
@@ -325,7 +392,7 @@ public class VetsController extends BaseListController {
             java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
 
         } catch (Exception e) {
-                com.catconnect.util.UiHelper.showError("Could not open website.");
+            com.catconnect.util.UiHelper.showError("Could not open website.");
         }
     }
     private void beginEdit(JsonNode item) {
@@ -338,7 +405,6 @@ public class VetsController extends BaseListController {
         hoursField.setText(item.path("openHours").asText(""));
         cityField.setText(item.path("city").asText(""));
         websiteField.setText(item.path("mapLink").asText(""));
-        ratingField.setText(item.path("rating").asText(""));
         emergencyBox.setSelected(item.path("emergency").asBoolean(false));
         imageUrlField.setText(existingImageUrl);
 
@@ -357,7 +423,6 @@ public class VetsController extends BaseListController {
             hoursField.clear();
             cityField.clear();
             websiteField.clear();
-            ratingField.clear();
             emergencyBox.setSelected(emergencyOnly);
             clearSelectedImage(photoPreview, photoLabel, imageUrlField);
             editingId = null;
@@ -365,15 +430,5 @@ public class VetsController extends BaseListController {
         } else if (emergencyOnly) {
             emergencyBox.setSelected(true);
         }
-    }
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        double R = 6371; // Earth radius in km
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
     }
 }

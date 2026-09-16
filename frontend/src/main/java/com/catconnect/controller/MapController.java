@@ -47,12 +47,108 @@ public class MapController {
 
     /*
      * =========================================================
+     * LISTING -> PAW MAP TARGET
+     * =========================================================
+     *
+     * Vet/shop cards can prepare a destination before navigating
+     * to the Paw Map. This is deliberately separate from Session's
+     * user location: the user's Home location remains the route
+     * START, while this target is the route DESTINATION.
+     */
+
+    private static MapController activeInstance;
+
+    private static PendingTarget pendingTarget;
+
+    private boolean mapDataReady =
+            false;
+
+
+    private static final class PendingTarget {
+
+        private final double latitude;
+        private final double longitude;
+        private final String name;
+        private final String type;
+
+        private PendingTarget(
+                double latitude,
+                double longitude,
+                String name,
+                String type
+        ) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.name = name == null || name.isBlank()
+                    ? "Destination"
+                    : name;
+            this.type = type == null || type.isBlank()
+                    ? "Destination"
+                    : type;
+        }
+    }
+
+
+    public static void setPendingTarget(
+            double latitude,
+            double longitude,
+            String name,
+            String type
+    ) {
+        if (
+                !Double.isFinite(latitude)
+                        ||
+                        !Double.isFinite(longitude)
+                        ||
+                        latitude < -90
+                        ||
+                        latitude > 90
+                        ||
+                        longitude < -180
+                        ||
+                        longitude > 180
+                        ||
+                        (latitude == 0 && longitude == 0)
+        ) {
+            return;
+        }
+
+        pendingTarget =
+                new PendingTarget(
+                        latitude,
+                        longitude,
+                        name,
+                        type
+                );
+    }
+
+
+    public static void focusPendingTargetIfPossible() {
+
+        MapController controller =
+                activeInstance;
+
+        if (controller == null) {
+            return;
+        }
+
+        Platform.runLater(
+                controller::focusPendingTarget
+        );
+    }
+
+
+    /*
+     * =========================================================
      * INITIALIZATION
      * =========================================================
      */
 
     @FXML
     public void initialize() {
+
+        activeInstance =
+                this;
 
         if (mapWebView == null) {
 
@@ -78,7 +174,8 @@ public class MapController {
          * be Chrome when requesting map resources.
          */
         webEngine.setUserAgent(
-                "PawConnect/1.0 (+https://github.com/Ishti1/PawConnect)"
+                "PawConnect/1.0 "
+                        + "(JavaFX desktop university project)"
         );
 
 
@@ -206,6 +303,9 @@ public class MapController {
         mapReady =
                 false;
 
+        mapDataReady =
+                false;
+
 
         if (mapStatusLabel != null) {
 
@@ -289,6 +389,10 @@ public class MapController {
                                 );
 
 
+                                mapDataReady =
+                                        true;
+
+
                                 /*
                                  * loadPawConnectData may fit map around
                                  * every vet/shop.
@@ -325,6 +429,14 @@ public class MapController {
                                 }
 
 
+                                /*
+                                 * A vet/shop card may have opened Paw Map.
+                                 * Markers now exist, so center on that listing
+                                 * and open its popup.
+                                 */
+                                focusPendingTarget();
+
+
                             } catch (Exception e) {
 
                                 e.printStackTrace();
@@ -347,6 +459,13 @@ public class MapController {
 
                         Platform.runLater(() -> {
 
+                            /*
+                             * Even if loading all markers failed, a listing
+                             * target can still be shown as a temporary marker.
+                             */
+                            mapDataReady =
+                                    true;
+
                             if (mapStatusLabel != null) {
 
                                 mapStatusLabel.setText(
@@ -355,6 +474,8 @@ public class MapController {
                                                 + e.getMessage()
                                 );
                             }
+
+                            focusPendingTarget();
                         });
                     }
 
@@ -518,6 +639,278 @@ public class MapController {
             Platform.runLater(
                     refreshTask
             );
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * VET / SHOP LISTING -> PAW MAP
+     * =========================================================
+     */
+
+    private void focusPendingTarget() {
+
+        PendingTarget target =
+                pendingTarget;
+
+        if (
+                target == null
+                        ||
+                        !mapReady
+                        ||
+                        !mapDataReady
+                        ||
+                        webEngine == null
+        ) {
+            return;
+        }
+
+
+        String safeName =
+                escapeForJavaScript(
+                        target.name
+                );
+
+        String safeType =
+                escapeForJavaScript(
+                        target.type
+                );
+
+
+        String script =
+
+                """
+                (function() {
+                    var map = window.pawMap;
+
+                    if (!map) {
+                        return "NO_MAP";
+                    }
+
+                    var targetLat = %s;
+                    var targetLon = %s;
+                    var targetName = '%s';
+                    var targetType = '%s';
+
+                    /*
+                     * Remove a temporary listing marker left from an
+                     * older selection.
+                     */
+                    if (window.pawSelectedListingMarker) {
+                        try {
+                            map.removeLayer(
+                                window.pawSelectedListingMarker
+                            );
+                        } catch (ignored) {}
+
+                        window.pawSelectedListingMarker = null;
+                    }
+
+                    /*
+                     * First try to locate the real vet/shop marker that
+                     * loadPawConnectData() already placed on the map.
+                     */
+                    var found = false;
+
+                    map.eachLayer(function(layer) {
+                        if (
+                            found
+                            ||
+                            !layer
+                            ||
+                            typeof layer.getLatLng !== 'function'
+                            ||
+                            typeof layer.openPopup !== 'function'
+                        ) {
+                            return;
+                        }
+
+                        try {
+                            var point =
+                                layer.getLatLng();
+
+                            if (
+                                point
+                                &&
+                                Math.abs(Number(point.lat) - targetLat)
+                                    < 0.000001
+                                &&
+                                Math.abs(Number(point.lng) - targetLon)
+                                    < 0.000001
+                            ) {
+                                layer.openPopup();
+                                found = true;
+                            }
+                        } catch (ignored) {}
+                    });
+
+                    map.setView(
+                        [targetLat, targetLon],
+                        16,
+                        { animate: false }
+                    );
+
+                    /*
+                     * If this is an older/new listing that did not yet
+                     * have coordinates stored in the database, Java may
+                     * have geocoded it on demand. In that case there is no
+                     * permanent marker in loadPawConnectData(), so create
+                     * one temporary Paw Map marker.
+                     */
+                    if (!found && window.L) {
+
+                        var marker =
+                            L.marker(
+                                [targetLat, targetLon]
+                            ).addTo(map);
+
+                        var popup =
+                            document.createElement('div');
+
+                        popup.className =
+                            'pawPopup';
+
+                        var badge =
+                            document.createElement('span');
+
+                        badge.className =
+                            'typeBadge';
+
+                        if (targetType === 'Cat Shop') {
+                            badge.textContent =
+                                '🛒 Cat Shop';
+                        } else if (targetType === 'Emergency Vet') {
+                            badge.textContent =
+                                '🚨 Emergency Vet';
+                        } else {
+                            badge.textContent =
+                                '🏥 Veterinary Clinic';
+                        }
+
+                        var heading =
+                            document.createElement('h3');
+
+                        heading.textContent =
+                            targetName;
+
+                        var button =
+                            document.createElement('button');
+
+                        button.className =
+                            'routePopupButton';
+
+                        button.textContent =
+                            '🚗 Show Route';
+
+                        button.onclick =
+                            function(event) {
+
+                                if (event) {
+                                    event.stopPropagation();
+                                }
+
+                                if (
+                                    typeof requestRouteTo
+                                        === 'function'
+                                ) {
+                                    requestRouteTo(
+                                        targetLat,
+                                        targetLon,
+                                        targetName,
+                                        targetType
+                                    );
+                                }
+                            };
+
+                        popup.appendChild(
+                            badge
+                        );
+
+                        popup.appendChild(
+                            heading
+                        );
+
+                        popup.appendChild(
+                            button
+                        );
+
+                        marker.bindPopup(
+                            popup
+                        );
+
+                        marker.openPopup();
+
+                        window.pawSelectedListingMarker =
+                            marker;
+                    }
+
+                    return found
+                        ? "FOUND"
+                        : "TEMP";
+                })();
+                """
+                        .formatted(
+                                Double.toString(
+                                        target.latitude
+                                ),
+                                Double.toString(
+                                        target.longitude
+                                ),
+                                safeName,
+                                safeType
+                        );
+
+
+        try {
+
+            Object result =
+                    webEngine.executeScript(
+                            script
+                    );
+
+
+            /*
+             * The target has now been displayed. Clear it so normal
+             * Home -> Paw Map navigation is unaffected later.
+             */
+            pendingTarget =
+                    null;
+
+
+            refreshLeaflet();
+
+
+            if (mapStatusLabel != null) {
+
+                mapStatusLabel.setText(
+                        "Showing "
+                                + target.name
+                                + " on Paw Map"
+                );
+            }
+
+
+            System.out.println(
+                    "Paw Map focused listing: "
+                            + target.name
+                            + " -> "
+                            + target.latitude
+                            + ", "
+                            + target.longitude
+                            + " ("
+                            + result
+                            + ")"
+            );
+
+
+        } catch (Exception e) {
+
+            System.err.println(
+                    "Could not focus Paw Map listing."
+            );
+
+            e.printStackTrace();
         }
     }
 
