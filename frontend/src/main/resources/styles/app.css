@@ -25,7 +25,7 @@
 }
 
 .nav-button:hover {
-    -fx-background-color: rgba(255,255,255,0.2);
+    -fx-background-color: rgba(255, 255, 255, 0.2);
     -fx-background-radius: 6;
 }
 
@@ -58,16 +58,17 @@
     -fx-padding: 0;
 }
 
-.content-area > .reels-list {
+.content-area>.reels-list {
     -fx-background-color: #fff5f7;
     -fx-padding: 0;
 }
+
 .reels-list .list-cell {
     -fx-padding: 0;
     -fx-border-width: 0;
 }
 
-.content-area > .viewport {
+.content-area>.viewport {
     -fx-background-color: #f8f5f0;
 }
 
@@ -76,11 +77,11 @@
 }
 
 .login-card {
-    -fx-background-color: rgba(255,245,240,0.75);
+    -fx-background-color: rgba(255, 245, 240, 0.75);
     -fx-background-radius: 20;
     -fx-padding: 40;
     -fx-max-width: 420;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 20, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 20, 0, 0, 4);
 }
 
 .login-page {
@@ -93,24 +94,23 @@
 }
 
 .login-pink-side {
-    -fx-background-color: linear-gradient(
-        to bottom right,
-        #ff6b6b,
-        #ff8fa3
-    );
-      -fx-padding: 0;
+    -fx-background-color: linear-gradient(to bottom right,
+            #ff6b6b,
+            #ff8fa3);
+    -fx-padding: 0;
 }
 
 .login-form-card {
     -fx-background-color: #ffffff;
     -fx-background-radius: 22;
     -fx-padding: 45;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 24, 0, 0, 6);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 24, 0, 0, 6);
 }
 
 .paw-logo {
     -fx-font-size: 64px;
 }
+
 .paw-logo-small {
     -fx-font-size: 32px;
 }
@@ -174,8 +174,9 @@
     -fx-font-size: 13px;
     -fx-max-width: 360;
 }
+
 .login-hero-image {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 18, 0, 0, 6);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 18, 0, 0, 6);
 }
 
 .login-story-stack {
@@ -184,14 +185,17 @@
 
 .story-image,
 .story-image-front {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 18, 0, 0, 6);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 18, 0, 0, 6);
 }
 
 .story-image-front {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 24, 0, 0, 8);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.32), 24, 0, 0, 8);
 }
 
-.text-field, .password-field, .text-area, .combo-box {
+.text-field,
+.password-field,
+.text-area,
+.combo-box {
     -fx-background-color: white;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
@@ -211,7 +215,8 @@
     -fx-text-fill: #2d3436;
 }
 
-.action-bar, .search-header {
+.action-bar,
+.search-header {
     -fx-background-color: #fff5f5;
     -fx-border-color: #ffd1d1;
     -fx-border-width: 1;
@@ -229,7 +234,7 @@
     -fx-background-color: white;
     -fx-background-radius: 12;
     -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
 }
 
 .card-title {
@@ -302,7 +307,7 @@
     -fx-background-color: white;
     -fx-background-radius: 10;
     -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
 }
 
 .form-label {
@@ -319,7 +324,7 @@
 
 .card-image {
     -fx-background-radius: 12;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 6, 0, 0, 1);
 }
 
 .photo-preview {
@@ -347,17 +352,15 @@
 }
 
 .logout-button:hover {
-    -fx-background-color: rgba(255,255,255,0.2);
+    -fx-background-color: rgba(255, 255, 255, 0.2);
     -fx-background-radius: 6;
 }
 
 /* SPLASH ─────────────────────────────────── */
 .splash-root {
-    -fx-background-color: linear-gradient(
-        to bottom right,
-        #ff6b6b,
-        #ff8fa3
-    );
+    -fx-background-color: linear-gradient(to bottom right,
+            #ff6b6b,
+            #ff8fa3);
 }
 
 .splash-logo {
@@ -428,13 +431,13 @@
 }
 
 .seg-btn:hover {
-    -fx-background-color: rgba(255,107,107,0.1);
+    -fx-background-color: rgba(255, 107, 107, 0.1);
 }
 
 .seg-btn-active {
     -fx-background-color: #ff6b6b;
     -fx-text-fill: white;
-    -fx-effect: dropshadow(gaussian, rgba(255,107,107,0.35), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.35), 8, 0, 0, 2);
 }
 
 .seg-btn-active:hover {
@@ -448,7 +451,7 @@
     -fx-padding: 0;
 }
 
-.chat-split-pane > .split-pane-divider {
+.chat-split-pane>.split-pane-divider {
     -fx-background-color: transparent;
     -fx-padding: 0 6 0 6;
 }
@@ -605,7 +608,7 @@
     -fx-font-size: 14px;
     -fx-wrap-text: true;
     -fx-max-width: 380px;
-    -fx-effect: dropshadow(gaussian, rgba(255,107,107,0.15), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.15), 4, 0, 0, 1);
 }
 
 .chat-bottom-bar {
@@ -668,7 +671,7 @@
     -fx-background-color: white;
     -fx-background-radius: 20;
     -fx-padding: 4 8;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
     -fx-border-color: #f1e4e4;
     -fx-border-radius: 20;
 }
@@ -690,7 +693,7 @@
     -fx-background-color: white;
     -fx-background-radius: 16;
     -fx-padding: 8;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 2);
     -fx-border-color: #f1e4e4;
     -fx-border-radius: 16;
 }
@@ -703,7 +706,7 @@
     -fx-font-size: 11px;
     -fx-border-color: #f1e4e4;
     -fx-border-radius: 100;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0, 0, 1);
 }
 
 .send-icon-btn:hover {
@@ -717,6 +720,7 @@
 .list-view {
     -fx-background-color: transparent;
 }
+
 .list-view .virtual-flow .sheet {
     -fx-background-color: transparent;
 }
@@ -742,6 +746,706 @@
 .sidebar-scrollpane .scroll-bar:vertical .increment-button,
 .sidebar-scrollpane .scroll-bar:vertical .decrement-button {
     -fx-padding: 0;
-}. c h a t - g l o w   {   - f x - t e x t - f i l l :   # f 1 c 4 0 f ;   - f x - f o n t - w e i g h t :   b o l d ;   - f x - e f f e c t :   d r o p s h a d o w ( t h r e e - p a s s - b o x ,   # f 1 c 4 0 f ,   1 0 ,   0 ,   0 ,   0 ) ;   }  
- . c o n t a c t - u n r e a d - g l o w   {   - f x - t e x t - f i l l :   # f 1 c 4 0 f ;   - f x - f o n t - w e i g h t :   b o l d ;   - f x - e f f e c t :   d r o p s h a d o w ( t h r e e - p a s s - b o x ,   # f 1 c 4 0 f ,   1 0 ,   0 ,   0 ,   0 ) ;   }  
- 
+}
+
+/* ============================================================
+   CAT LIBRARY
+   ============================================================ */
+
+.cat-library-root {
+    -fx-background-color: #faf7f2;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.library-header {
+    -fx-alignment: center;
+}
+
+
+.library-eyebrow {
+    -fx-text-fill: #ef6475;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+
+.library-title {
+    -fx-text-fill: #303238;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+
+.library-subtitle {
+    -fx-text-fill: #817879;
+    -fx-font-size: 13px;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+}
+
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+
+.library-search-row {
+    -fx-padding: 4px 28px 5px 28px;
+}
+
+
+.library-search {
+    -fx-background-color: white;
+
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+
+    -fx-border-color: #eee5e1;
+    -fx-border-width: 1px;
+
+    -fx-padding: 11px 15px;
+
+    -fx-font-size: 13px;
+
+    -fx-prompt-text-fill: #aaa1a2;
+
+    -fx-pref-width: 430px;
+}
+
+
+.library-search:focused {
+    -fx-border-color: #ef9ba6;
+
+    -fx-effect: dropshadow(gaussian,
+            rgba(239, 100, 117, 0.12),
+            10,
+            0.1,
+            0,
+            2);
+}
+
+
+.library-result {
+    -fx-text-fill: #9b9192;
+    -fx-font-size: 12px;
+}
+
+
+/* ============================================================
+   SCROLL AREA
+   ============================================================ */
+
+.library-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+
+.library-scroll>.viewport {
+    -fx-background-color: transparent;
+}
+
+
+.library-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+
+.library-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #ded4d1;
+    -fx-background-radius: 10px;
+}
+
+
+/* ============================================================
+   BREED GRID
+   ============================================================ */
+
+.breed-grid {
+    -fx-alignment: top-center;
+}
+
+
+/* ============================================================
+   BREED CARD
+   ============================================================ */
+
+.breed-card {
+    -fx-background-color: white;
+
+    -fx-background-radius: 17px;
+    -fx-border-radius: 17px;
+
+    -fx-border-color: #eee4e0;
+    -fx-border-width: 1px;
+
+    -fx-effect: dropshadow(gaussian,
+            rgba(70, 55, 55, 0.08),
+            16,
+            0.12,
+            0,
+            4);
+}
+
+
+.breed-card:hover {
+    -fx-translate-y: -3px;
+
+    -fx-border-color: #f2c6cb;
+
+    -fx-effect: dropshadow(gaussian,
+            rgba(239, 100, 117, 0.15),
+            20,
+            0.12,
+            0,
+            6);
+}
+
+
+/* ============================================================
+   BREED IMAGE
+   ============================================================ */
+
+.breed-image-container {
+    -fx-background-color: #f3e9e7;
+
+    -fx-background-radius: 17px 17px 0 0;
+
+    -fx-min-height: 190px;
+    -fx-max-height: 190px;
+
+    -fx-overflow: hidden;
+}
+
+
+/* ============================================================
+   CARD INFORMATION
+   ============================================================ */
+
+.breed-card-information {
+    -fx-background-color: white;
+
+    -fx-background-radius: 0 0 17px 17px;
+}
+
+
+.breed-card-name {
+    -fx-text-fill: #34353a;
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+}
+
+
+.breed-card-tagline {
+    -fx-text-fill: #ef6475;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+
+.breed-card-description {
+    -fx-text-fill: #817879;
+    -fx-font-size: 12px;
+    -fx-line-spacing: 2px;
+}
+
+
+/* ============================================================
+   LEARN MORE
+   ============================================================ */
+
+.breed-learn-button {
+    -fx-background-color: transparent;
+
+    -fx-text-fill: #e75f71;
+
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+
+    -fx-padding: 7px 0 0 0;
+
+    -fx-cursor: hand;
+}
+
+
+.breed-learn-button:hover {
+    -fx-text-fill: #d94e61;
+}
+
+
+/* ============================================================
+   DETAIL PAGE
+   ============================================================ */
+
+.breed-detail-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+
+.breed-detail-scroll>.viewport {
+    -fx-background-color: #faf7f2;
+}
+
+
+.breed-detail-content {
+    -fx-background-color: #faf7f2;
+
+    -fx-padding: 25px 35px 45px 35px;
+}
+
+
+.breed-back-button {
+    -fx-background-color: transparent;
+
+    -fx-text-fill: #8e8384;
+
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+
+    -fx-padding: 5px 0 12px 0;
+
+    -fx-cursor: hand;
+}
+
+
+.breed-back-button:hover {
+    -fx-text-fill: #ef6475;
+}
+
+
+/* ============================================================
+   DETAIL IMAGE
+   ============================================================ */
+
+.breed-detail-image {
+    -fx-background-color: #f0e6e3;
+
+    -fx-background-radius: 20px;
+
+    -fx-border-radius: 20px;
+
+    -fx-border-color: #eadbd7;
+    -fx-border-width: 1px;
+
+    -fx-effect: dropshadow(gaussian,
+            rgba(70, 55, 55, 0.08),
+            20,
+            0.12,
+            0,
+            5);
+}
+
+
+/* ============================================================
+   DETAIL TEXT
+   ============================================================ */
+
+.breed-detail-name {
+    -fx-text-fill: #303238;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+
+    -fx-padding: 12px 0 0 0;
+}
+
+
+.breed-detail-tagline {
+    -fx-text-fill: #ef6475;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+
+    -fx-padding: 0 0 10px 0;
+}
+
+
+.detail-section-title {
+    -fx-text-fill: #9d9293;
+
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+
+    -fx-padding: 12px 0 2px 0;
+}
+
+
+.breed-detail-description {
+    -fx-text-fill: #655e60;
+
+    -fx-font-size: 13px;
+
+    -fx-line-spacing: 3px;
+}
+
+
+.detail-section-text {
+    -fx-text-fill: #403c3e;
+
+    -fx-font-size: 13px;
+}
+
+
+/* ============================================================
+   CARE
+   ============================================================ */
+
+.care-row {
+    -fx-spacing: 12px;
+}
+
+
+.care-box {
+    -fx-background-color: white;
+
+    -fx-background-radius: 12px;
+
+    -fx-border-color: #eee4e0;
+    -fx-border-radius: 12px;
+    -fx-border-width: 1px;
+
+    -fx-padding: 12px;
+
+    -fx-min-width: 160px;
+}
+
+
+.care-title {
+    -fx-text-fill: #a59a9b;
+
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+}
+
+
+.care-value {
+    -fx-text-fill: #3c393b;
+
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+
+/* ============================================================
+   FUN FACT
+   ============================================================ */
+
+.fun-fact {
+    -fx-background-color: #fff2f4;
+
+    -fx-background-radius: 12px;
+
+    -fx-border-color: #f6d5da;
+    -fx-border-radius: 12px;
+    -fx-border-width: 1px;
+
+    -fx-text-fill: #5d5153;
+
+    -fx-font-size: 12px;
+
+    -fx-padding: 13px 15px;
+}
+
+/* =========================================================
+   CAT MEMORY MATCH
+   Full Modern Aesthetics & Playful UI
+   ========================================================= */
+
+/* Main Memory Match screen */
+.memory-screen,
+#memoryRoot,
+.memory-root {
+    -fx-background-color: #faf7f2;
+}
+
+.memory-content {
+    -fx-alignment: top-center;
+}
+
+/* ---------------------------------------------------------
+   Header Section (Eyebrow Badge, Title, Subtitle)
+   --------------------------------------------------------- */
+
+.memory-header-box {
+    -fx-alignment: center;
+    -fx-padding: 4px 0 8px 0;
+}
+
+/* Adorable Pill Tag / Eyebrow */
+.memory-eyebrow {
+    -fx-text-fill: #ef5369;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-color: #fff0f3;
+    -fx-background-radius: 20px;
+    -fx-border-color: #fcd5dc;
+    -fx-border-radius: 20px;
+    -fx-border-width: 1px;
+    -fx-padding: 5px 16px;
+    -fx-effect: dropshadow(gaussian, rgba(239, 83, 105, 0.1), 8, 0, 0, 1);
+}
+
+/* Big Playful Game Title */
+.memory-title {
+    -fx-font-family: "Fredoka", "Segoe UI", sans-serif;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3436;
+    -fx-padding: 4px 0 2px 0;
+}
+
+/* Descriptive Subtitle */
+.memory-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #857a7c;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+}
+
+/* ---------------------------------------------------------
+   Control Row ("Find all the pairs" + New Game button)
+   --------------------------------------------------------- */
+
+.memory-control-row {
+    -fx-padding: 4px 4px 4px 4px;
+    -fx-alignment: center-left;
+}
+
+.memory-section-title {
+    -fx-font-family: "Fredoka", "Segoe UI", sans-serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3436;
+}
+
+.memory-section-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #8f8587;
+}
+
+/* Vibrant Rounded New Game Button */
+.memory-new-game {
+    -fx-background-color: linear-gradient(to right, #ff6b6b, #ff7e8e);
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 22px;
+    -fx-padding: 10px 22px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.38), 10, 0, 0, 3);
+}
+
+.memory-new-game:hover {
+    -fx-background-color: linear-gradient(to right, #ee5a5a, #ff6b6b);
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.52), 12, 0, 0, 4);
+    -fx-translate-y: -1px;
+}
+
+.memory-new-game:pressed {
+    -fx-background-color: #e04848;
+    -fx-translate-y: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.2), 4, 0, 0, 1);
+}
+
+/* ---------------------------------------------------------
+   Stats Bar & Pill Chips
+   --------------------------------------------------------- */
+
+.memory-stats {
+    -fx-background-color: white;
+    -fx-background-radius: 18px;
+    -fx-border-color: #eee3e1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 18px;
+    -fx-padding: 10px 14px;
+    -fx-spacing: 12px;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(70, 55, 55, 0.05), 14, 0, 0, 3);
+}
+
+/* Individual Stat Chip */
+.memory-stat {
+    -fx-background-color: #fff9f9;
+    -fx-background-radius: 12px;
+    -fx-border-color: #f7e6e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-padding: 7px 12px;
+    -fx-min-width: 86px;
+    -fx-alignment: center;
+}
+
+.memory-stat-label {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #a29597;
+    -fx-alignment: center;
+}
+
+.memory-stat-value {
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3436;
+    -fx-alignment: center;
+}
+
+.memory-stat-small-value {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #554e50;
+    -fx-alignment: center;
+}
+
+/* Highlighted Stat Chip (Score) */
+.memory-stat.memory-stat-highlight,
+.memory-stat-highlight {
+    -fx-background-color: #fff0f3;
+    -fx-border-color: #fcc2cb;
+    -fx-border-width: 1.5px;
+    -fx-effect: dropshadow(gaussian, rgba(232, 65, 88, 0.12), 8, 0, 0, 1);
+}
+
+.memory-stat.memory-stat-highlight .memory-stat-label,
+.memory-stat-highlight .memory-stat-label {
+    -fx-text-fill: #e84158;
+}
+
+.memory-stat.memory-stat-highlight .memory-stat-value,
+.memory-stat-highlight .memory-stat-value {
+    -fx-text-fill: #e84158;
+    -fx-font-size: 21px;
+}
+
+/* Secondary Stat Chips (Best Score & Best Time) */
+.memory-stat.memory-stat-secondary,
+.memory-stat-secondary {
+    -fx-background-color: #faf7f5;
+    -fx-border-color: #eee4e0;
+}
+
+/* ---------------------------------------------------------
+   Difficulty Buttons (Hidden / Backward Compatibility)
+   --------------------------------------------------------- */
+
+.diff-container {
+    -fx-background-color: #fff5f5;
+    -fx-background-radius: 10px;
+    -fx-border-color: #f1dada;
+    -fx-border-radius: 10px;
+    -fx-padding: 4px;
+}
+
+.diff-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #636e72;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 7px;
+    -fx-padding: 7px 10px;
+    -fx-cursor: hand;
+}
+
+.diff-btn:hover {
+    -fx-background-color: #ffe3e3;
+}
+
+.diff-btn-active {
+    -fx-background-color: #ff6b6b;
+    -fx-text-fill: white;
+}
+
+/* ---------------------------------------------------------
+   Memory Game Board & Grid
+   --------------------------------------------------------- */
+
+.memory-board,
+#gameAreaStack {
+    -fx-background-color: white;
+    -fx-background-radius: 20px;
+    -fx-border-color: #eee4e0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 20px;
+    -fx-padding: 20px;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(70, 55, 55, 0.06), 16, 0, 0, 4);
+}
+
+.memory-grid-container {
+    -fx-alignment: center;
+    -fx-hgap: 12px;
+    -fx-vgap: 12px;
+}
+
+/* ---------------------------------------------------------
+   Memory Cards
+   --------------------------------------------------------- */
+
+.memory-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16px;
+    -fx-border-color: #eedada;
+    -fx-border-width: 2px;
+    -fx-border-radius: 16px;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(70, 55, 55, 0.08), 8, 0, 0, 2);
+}
+
+.memory-card:hover {
+    -fx-border-color: #ff8da0;
+    -fx-translate-y: -2px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.3), 12, 0, 0, 4);
+}
+
+.memory-card-flipped {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #fcc2cb;
+    -fx-border-width: 2px;
+}
+
+.memory-card-matched {
+    -fx-background-color: #f3faf4;
+    -fx-border-color: #7bed9f;
+    -fx-border-width: 2.5px;
+    -fx-effect: dropshadow(gaussian, rgba(46, 213, 115, 0.3), 10, 0, 0, 2);
+}
+
+/* ---------------------------------------------------------
+   Floating Match Score & Win Dialog
+   --------------------------------------------------------- */
+
+.floating-score-label {
+    -fx-text-fill: #e84158;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(232, 65, 88, 0.45), 8, 0, 0, 2);
+}
+
+.dialog-card {
+    -fx-background-color: white;
+    -fx-background-radius: 22px;
+    -fx-border-color: #f2d8d8;
+    -fx-border-radius: 22px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 26, 0, 0, 8);
+}
+
+.dialog-badge {
+    -fx-background-color: #fff0f3;
+    -fx-background-radius: 20px;
+    -fx-border-color: #fcd5dc;
+    -fx-border-radius: 20px;
+    -fx-text-fill: #ef6475;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6px 18px;
+}
+
+.dialog-title {
+    -fx-font-family: "Fredoka", "Segoe UI", sans-serif;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3436;
+}
