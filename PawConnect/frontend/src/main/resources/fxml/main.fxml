@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.catconnect.controller.MainController"
+            stylesheets="@../styles/app.css"
+            prefWidth="1100"
+            prefHeight="700">
+
+    <left>
+        <VBox fx:id="sidebar" styleClass="sidebar" prefWidth="220" spacing="8">
+            <padding>
+                <Insets top="20" right="12" bottom="20" left="12"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <ImageView fitHeight="64" fitWidth="64" preserveRatio="true">
+                    <image>
+                        <Image url="@../images/pawconnect_logo.png"/>
+                    </image>
+                </ImageView>
+            </HBox>
+
+            <Label fx:id="userLabel"
+                   style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 14px;"
+                   wrapText="true"/>
+
+            <Separator style="-fx-background-color: rgba(255,255,255,0.3);"/>
+
+            <ScrollPane fx:id="sidebarScroll"
+                        fitToWidth="true"
+                        VBox.vgrow="ALWAYS"
+                        hbarPolicy="NEVER"
+                        vbarPolicy="NEVER"
+                        styleClass="sidebar-scrollpane"
+                        style="-fx-background: transparent; -fx-background-color: transparent;">
+
+                <VBox spacing="4">
+                    <Button text="🏠 Home" onAction="#showHome" fx:id="btnHome" styleClass="nav-button"/>
+                    <Button text="🔍 Lost &amp; Found" onAction="#showLostFound" fx:id="btnLostFound" styleClass="nav-button"/>
+                    <Button text="🏥 Nearby Vet" onAction="#showVets" fx:id="btnVets" styleClass="nav-button"/>
+                    <Button text="🚨 Emergency Vet" onAction="#showEmergency" fx:id="btnEmergency" styleClass="nav-button"/>
+                    <Button text="🛒 Cat Shops" onAction="#showShops" fx:id="btnShops" styleClass="nav-button"/>
+                    <Button text="📸 Cat Posts" onAction="#showMoments" fx:id="btnMoments" styleClass="nav-button"/>
+                    <Button text="💝 Donations" onAction="#showDonations" fx:id="btnDonations" styleClass="nav-button"/>
+                    <Button text="🏠 Shelters" onAction="#showShelters" fx:id="btnShelters" styleClass="nav-button"/>
+                    <Button text="🐾 Adoption" onAction="#showAdoption" fx:id="btnAdoption" styleClass="nav-button"/>
+                    <Button text="🎮 Cat Game" onAction="#showCatGame" fx:id="btnCatGame" styleClass="nav-button"/>
+                    <Button text="📚 Cat Library" onAction="#showCatLibrary" fx:id="btnCatLibrary" styleClass="nav-button"/>
+                    <Button text="⚙️ Manage Account" onAction="#showManageAccount" fx:id="btnManageAccount" styleClass="nav-button"/>
+                    <Button text="💬 Chat" onAction="#showChat" fx:id="btnChat" styleClass="nav-button"/>
+                </VBox>
+            </ScrollPane>
+
+            <Button fx:id="btnRefresh" text="🔄 Refresh"
+                    onAction="#onRefresh"
+                    styleClass="logout-button" style="-fx-background-color: #3498db;"/>
+            <Button fx:id="btnLogout" text="🚪 Logout"
+                    onAction="#onLogout"
+                    styleClass="logout-button"/>
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true"
+                    styleClass="content-area"
+                    fx:id="contentScroll">
+            <VBox fx:id="contentBox" spacing="16"/>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

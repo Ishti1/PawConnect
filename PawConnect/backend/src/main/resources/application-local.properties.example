@@ -1,0 +1,10 @@
+# Copy to application-local.properties (gitignored) and fill in your online database.
+# Do not commit real passwords.
+
+spring.datasource.url=jdbc:mysql://localhost:3306/catconnect?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=ishtiak7070
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# Optional: stronger JWT secret for production
+# app.jwt.secret=YOUR_LONG_RANDOM_SECRET_AT_LEAST_32_CHARACTERS

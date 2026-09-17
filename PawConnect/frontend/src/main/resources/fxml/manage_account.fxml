@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" spacing="20.0"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.catconnect.controller.ManageAccountController"
+      style="-fx-background-color: #faf9f7;">
+
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <VBox alignment="CENTER" spacing="15.0" maxWidth="400"
+          style="-fx-background-color: white; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 4);">
+        
+        <Label text="Manage Account" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
+        
+        <Label text="Please verify your current credentials to make changes." wrapText="true" textAlignment="CENTER" style="-fx-text-fill: #666; -fx-font-size: 14px;"/>
+        
+        <VBox spacing="5" maxWidth="Infinity">
+            <Label text="Email Address" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
+            <TextField fx:id="emailField" promptText="Enter your email" styleClass="input-field"/>
+        </VBox>
+
+        <VBox spacing="5" maxWidth="Infinity">
+            <Label text="Current Password" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
+            <PasswordField fx:id="currentPasswordField" promptText="Enter current password" styleClass="input-field"/>
+        </VBox>
+        
+        <Separator style="-fx-padding: 10 0 10 0;"/>
+        
+        <VBox spacing="5" maxWidth="Infinity">
+            <Label text="New Username (Optional)" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
+            <TextField fx:id="newUsernameField" promptText="New display name" styleClass="input-field"/>
+        </VBox>
+
+        <VBox spacing="5" maxWidth="Infinity">
+            <Label text="New Password (Optional)" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
+            <PasswordField fx:id="newPasswordField" promptText="New password" styleClass="input-field"/>
+        </VBox>
+
+        <Button text="Update Account" fx:id="updateButton" onAction="#onUpdateAccount"
+                maxWidth="Infinity" styleClass="primary-button" style="-fx-font-size: 16px; -fx-padding: 12; -fx-margin-top: 10;"/>
+    </VBox>
+
+</VBox>

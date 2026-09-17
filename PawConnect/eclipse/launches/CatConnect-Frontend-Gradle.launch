@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.buildship.core.runconfiguration.gradleRun">
+    <booleanAttribute key="org.eclipse.buildship.core.runconfiguration.gradleproject" value="true"/>
+    <stringAttribute key="org.eclipse.buildship.core.runconfiguration.project" value="catconnect-frontend"/>
+    <stringAttribute key="org.eclipse.buildship.core.runconfiguration.tasks" value="run"/>
+</launchConfiguration>
