@@ -295,12 +295,21 @@ public class ChatController {
                     chatStatusLabel.setText("Connected");
                     setStatusOnline();
                     inputField.setDisable(false);
-                    if (!chatListView.getItems().isEmpty()) {
-                        // Pause for 100ms to allow all chat bubbles to calculate their height, then scroll
-                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(100));
-                        pause.setOnFinished(ev -> chatListView.scrollTo(chatListView.getItems().size() - 1));
-                        pause.play();
-                    }
+                    
+                    // The messages are added via Platform.runLater inside appendChatLine, 
+                    // so we must defer the scroll logic to execute after they are added.
+                    Platform.runLater(() -> {
+                        if (!chatListView.getItems().isEmpty()) {
+                            chatListView.scrollTo(chatListView.getItems().size() - 1);
+                            javafx.animation.PauseTransition pause1 = new javafx.animation.PauseTransition(javafx.util.Duration.millis(100));
+                            pause1.setOnFinished(ev -> chatListView.scrollTo(chatListView.getItems().size() - 1));
+                            pause1.play();
+                            
+                            javafx.animation.PauseTransition pause2 = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
+                            pause2.setOnFinished(ev -> chatListView.scrollTo(chatListView.getItems().size() - 1));
+                            pause2.play();
+                        }
+                    });
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> {
