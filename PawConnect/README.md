@@ -1,22 +1,23 @@
-# CatConnect
+# PawConnect
 
-A community platform for cat lovers — connect with vets, shelters, shops, and fellow cat parents.
+**Video Demo**: https://youtu.be/n4EIP4eHk1E
 
-## Tech stack (required)
+A community platform for pet lovers — connect with vets, shelters, shops, and fellow pet parents.
+
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
 | **Backend API** | **Java 17** + **Spring Boot 3.5** (REST, JPA, Security, JWT) |
 | **Desktop UI** | **Java 17** + **JavaFX 21** |
-| **Database** | **MySQL 8** |
-| **Build** | Gradle Wrapper (`gradlew.bat`) or Maven (`pom.xml`) |
-
-All backend code is plain **Java** under `backend/src/main/java` — Spring Boot controllers, services, JPA entities, and repositories. Gradle/Maven are only build tools; the application runtime is Java + Spring Boot.
+| **Database** | **MySQL 8** (Aiven Cloud) |
+| **File Storage** | **Cloudinary** |
+| **Build** | Gradle Wrapper (`gradlew-run.ps1`) |
 
 ## Architecture
 
 ```
-CatConnect
+PawConnect
 ├── frontend/          JavaFX desktop client
 ├── backend/           Spring Boot REST API
 ├── database/          MySQL schema & seed data
@@ -28,7 +29,8 @@ CatConnect
 
 | Module | Description |
 |--------|-------------|
-| User accounts | Register, login, profile management |
+| User accounts | Register, login, profile & nickname management |
+| **Google OAuth** | Sign in with any Google account (system browser flow) |
 | Lost & Found | Report and search missing/found cats |
 | Nearby Vet | Vet clinics with ratings and contact |
 | Cat care knowledge | Articles and care tips |
@@ -39,63 +41,66 @@ CatConnect
 | Adoption corner | Cats available for adoption |
 | Emergency vet | 24/7 emergency clinic contacts |
 | Cat memes | Curated meme feed |
+| Community Chat | Real-time WebSocket messaging |
+| Paw Map | Interactive map of vets, shops & shelters |
 
 ## Prerequisites
 
-- **Java 17+** (JDK; no Maven required)
-- **Online MySQL 8** (shared database for all devices)
+- **Java 17+** (JDK)
+- Internet connection (uses Aiven cloud MySQL — no local DB setup needed)
 
-Build with **Gradle Wrapper** (`gradlew.bat` on Windows) — included in `backend/` and `frontend/`. No Maven install required.
+## Quick Start
 
-If `gradlew` fails with invalid `JAVA_HOME`, run the helper scripts or set `JAVA_HOME` to your JDK (e.g. Eclipse Adoptium):
-
-```powershell
-.\backend\gradlew-run.ps1
-.\frontend\gradlew-run.ps1
-```
-
-## Quick start
-
-### 1. Database (online MySQL)
-
-Configure your cloud MySQL connection — see [Setup guide](docs/SETUP.md):
+### 1. Backend
 
 ```powershell
-copy backend\src\main\resources\application-local.properties.example backend\src\main\resources\application-local.properties
-# Edit with your online DB host, user, and password
-```
-
-Run `database/schema.sql` and `database/seed.sql` on the remote database once.
-
-### 2. Backend (Java + Spring Boot)
-
-```bash
 cd backend
-# Edit src/main/resources/application.properties (DB password, JWT secret)
-.\gradlew.bat bootRun
+.\gradlew-run.ps1
 ```
 
-Starts `CatConnectApplication` — the Spring Boot entry point. API runs at `http://localhost:8080`
+Starts the Spring Boot API at `http://localhost:8080`.
 
-### 3. Frontend
+### 2. Frontend
 
-```bash
+```powershell
 cd frontend
-.\gradlew.bat run
+.\gradlew-run.ps1
 ```
 
-### Maven (optional)
+Opens the JavaFX desktop app. By default it connects to `http://localhost:8080/api`.
 
-If you prefer Maven, `pom.xml` is still available: `mvn spring-boot:run` / `mvn javafx:run`.
+> To point the frontend at a different backend, create/edit `%USERPROFILE%\.catconnect\config.properties`:
+> ```properties
+> api.url=http://localhost:8080/api
+> ```
 
-Default API URL: `http://localhost:8080/api`
+## Login Options
 
-### Demo login
+### Email & Password
+- **Register** with your email, display name, and a password (min 6 characters).
+- **Login** with email + password.
 
+### Demo account
 - Email: `demo@catconnect.com`
 - Password: `password123`
 
-## User content (add / delete your own posts)
+### Google Sign-In
+1. Click **Login with Google** on the login screen.
+2. Your **system browser** (Chrome/Edge/Firefox) opens Google's sign-in page.
+3. Sign in and approve access — the browser shows **"✓ Signed in!"**.
+4. PawConnect logs you in automatically.
+5. **First-time Google users** are shown a nickname setup dialog before entering the app.
+
+> Google OAuth uses the system browser (not an embedded WebView), which is the approach recommended by Google for desktop apps (RFC 8252).
+
+## Changing Your Nickname
+
+Navigate to **Manage Account** in the sidebar:
+
+- **Google users** — only the **Nickname** field is shown. No password needed; your Google session authenticates the change.
+- **Email/password users** — provide your current email and password, then enter the new nickname.
+
+## User Content (Add / Delete Your Own Posts)
 
 | Screen | Add | Delete |
 |--------|-----|--------|
@@ -110,15 +115,11 @@ Vets, shops, shelters, and care articles are directory data (read-only in the ap
 
 Open **Community Chat** in the sidebar for real-time messaging (WebSocket). You must be logged in.
 
-Restart **backend** and **frontend** after code updates.
-
-**Vets, shops, shelters** are sample directory data from the database seed. To change those locations, edit `database/seed.sql` or rows in MySQL/H2, then restart the backend.
-
 ## Documentation
 
 - [Setup guide](docs/SETUP.md)
-- [**Multiple devices / LAN chat**](docs/MULTI_DEVICE.md)
-- [**Eclipse IDE guide**](docs/ECLIPSE.md)
+- [Multiple devices / LAN chat](docs/MULTI_DEVICE.md)
+- [Eclipse IDE guide](docs/ECLIPSE.md)
 - [API reference](docs/API.md)
 - [Architecture](docs/ARCHITECTURE.md)
 
