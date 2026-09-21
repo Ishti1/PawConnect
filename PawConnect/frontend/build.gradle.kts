@@ -36,6 +36,9 @@ dependencies {
     implementation("org.java-websocket:Java-WebSocket:1.5.6")
     implementation("com.github.sarxos:webcam-capture:0.3.12")
     implementation("org.slf4j:slf4j-simple:1.7.36")
+    implementation("com.google.api-client:google-api-client:2.2.0")
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
+    implementation("com.google.http-client:google-http-client-gson:1.43.3")
 }
 
 javafx {
@@ -44,7 +47,7 @@ javafx {
 }
 
 application {
-    mainClass.set("com.catconnect.app.CatConnectApp")
+    mainClass.set("com.catconnect.app.Launcher")
 }
 
 tasks.named<JavaExec>("run") {

@@ -16,6 +16,11 @@ public class User {
     @JsonProperty("admin")
     private Boolean admin;
 
+    private String authProvider;
+
+    @JsonProperty("isNewUser")
+    private Boolean isNewUser;
+
     public Boolean getIsAdmin() {
         return Boolean.TRUE.equals(isAdmin) || Boolean.TRUE.equals(admin);
     }
@@ -48,7 +53,14 @@ public class User {
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
 
+    public String getAuthProvider() { return authProvider; }
+    public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
 
+    public boolean isGoogleUser() { return "GOOGLE".equals(authProvider); }
 
+    public Boolean getIsNewUser() { return isNewUser; }
+    public void setIsNewUser(Boolean isNewUser) { this.isNewUser = isNewUser; }
 
-}
+    public boolean isNewUser() { return Boolean.TRUE.equals(isNewUser); }
+
+}

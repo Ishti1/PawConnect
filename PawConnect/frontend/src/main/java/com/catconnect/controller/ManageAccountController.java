@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,16 +22,66 @@ public class ManageAccountController {
     @FXML private TextField newUsernameField;
     @FXML private PasswordField newPasswordField;
     @FXML private Button updateButton;
+    @FXML private VBox emailBox;
+    @FXML private VBox currentPasswordBox;
+    @FXML private VBox newPasswordBox;
+    @FXML private javafx.scene.control.Label subtitleLabel;
 
     @FXML
     public void initialize() {
         if (Session.getCurrentUser() != null) {
             emailField.setText(Session.getCurrentUser().getEmail());
+            newUsernameField.setText(Session.getCurrentUser().getDisplayName());
+
+            // Google users don't have a password — hide the credential fields
+            if (Session.getCurrentUser().isGoogleUser()) {
+                emailBox.setVisible(false);
+                emailBox.setManaged(false);
+                currentPasswordBox.setVisible(false);
+                currentPasswordBox.setManaged(false);
+                newPasswordBox.setVisible(false);
+                newPasswordBox.setManaged(false);
+                subtitleLabel.setText("You're signed in with Google. Just update your nickname below.");
+            }
         }
     }
 
     @FXML
     private void onUpdateAccount() {
+        // ── Google users: password-free nickname update ──────────────────────
+        if (Session.getCurrentUser() != null && Session.getCurrentUser().isGoogleUser()) {
+            String newNickname = newUsernameField.getText().trim();
+            if (newNickname.isBlank()) {
+                UiHelper.showError("Please enter a nickname.");
+                return;
+            }
+            updateButton.setDisable(true);
+            updateButton.setText("Saving...");
+            CompletableFuture.runAsync(() -> {
+                try {
+                    ApiClient.get().updateDisplayName(newNickname);
+                    Platform.runLater(() -> {
+                        updateButton.setDisable(false);
+                        updateButton.setText("Update Account");
+                        Session.getCurrentUser().setDisplayName(newNickname);
+                        if (MainController.getInstance() != null) {
+                            MainController.getInstance().updateUserLabel();
+                        }
+                        UiHelper.showInfo("Nickname updated to \"" + newNickname + "\"!");
+                        newUsernameField.clear();
+                    });
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        updateButton.setDisable(false);
+                        updateButton.setText("Update Account");
+                        UiHelper.showError("Failed to update: " + e.getMessage());
+                    });
+                }
+            });
+            return;
+        }
+
+        // ── Regular (email/password) users ──────────────────────────────────
         String email = emailField.getText();
         String currentPassword = currentPasswordField.getText();
         String newUsername = newUsernameField.getText();

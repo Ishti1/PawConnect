@@ -12,7 +12,7 @@ public final class ClientConfig {
     private static final Path CONFIG_PATH =
             Path.of(System.getProperty("user.home"), ".catconnect", "config.properties");
     private static final String KEY_API_URL = "api.url";
-    public static final String DEFAULT_API_URL = "http://localhost:8080/api";
+    public static final String DEFAULT_API_URL = "https://pawconnect-1-bhp8.onrender.com/api";
 
     private ClientConfig() {}
 

@@ -19,14 +19,14 @@
         
         <Label text="Manage Account" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
         
-        <Label text="Please verify your current credentials to make changes." wrapText="true" textAlignment="CENTER" style="-fx-text-fill: #666; -fx-font-size: 14px;"/>
+        <Label fx:id="subtitleLabel" text="Please verify your current credentials to make changes." wrapText="true" textAlignment="CENTER" style="-fx-text-fill: #666; -fx-font-size: 14px;"/>
         
-        <VBox spacing="5" maxWidth="Infinity">
+        <VBox fx:id="emailBox" spacing="5" maxWidth="Infinity">
             <Label text="Email Address" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
             <TextField fx:id="emailField" promptText="Enter your email" styleClass="input-field"/>
         </VBox>
 
-        <VBox spacing="5" maxWidth="Infinity">
+        <VBox fx:id="currentPasswordBox" spacing="5" maxWidth="Infinity">
             <Label text="Current Password" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
             <PasswordField fx:id="currentPasswordField" promptText="Enter current password" styleClass="input-field"/>
         </VBox>
@@ -34,11 +34,11 @@
         <Separator style="-fx-padding: 10 0 10 0;"/>
         
         <VBox spacing="5" maxWidth="Infinity">
-            <Label text="New Username (Optional)" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
+            <Label text="Nickname" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
             <TextField fx:id="newUsernameField" promptText="New display name" styleClass="input-field"/>
         </VBox>
 
-        <VBox spacing="5" maxWidth="Infinity">
+        <VBox fx:id="newPasswordBox" spacing="5" maxWidth="Infinity">
             <Label text="New Password (Optional)" style="-fx-text-fill: #555; -fx-font-weight: bold;"/>
             <PasswordField fx:id="newPasswordField" promptText="New password" styleClass="input-field"/>
         </VBox>

@@ -17,7 +17,7 @@
     </HBox>
 
     <VBox styleClass="action-bar" spacing="10">
-        <Label text="List a cat for adoption or browse cats looking for homes. Delete appears only on your listings."
+        <Label text="List a cat for adoption or browse cats looking for homes."
                styleClass="action-bar-hint" wrapText="true"/>
         <HBox spacing="12" alignment="CENTER_LEFT">
             <Button text="+ List a Cat" onAction="#onAdd" styleClass="primary-button"/>

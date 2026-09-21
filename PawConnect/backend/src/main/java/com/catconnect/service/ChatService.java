@@ -148,7 +148,7 @@ public class ChatService {
         for (Long pId : partnerIds) {
             com.catconnect.entity.User u = userMap.get(pId);
             if (u != null) {
-                dtos.add(new UserDto(u.getId(), null, u.getDisplayName(), null, null, null));
+                dtos.add(UserDto.builder().id(u.getId()).displayName(u.getDisplayName()).build());
             }
         }
         return dtos;

@@ -9,7 +9,7 @@
     <padding><Insets top="4" right="2" bottom="16" left="2"/></padding>
     <Label text="💝 Donation &amp; Support" styleClass="screen-title"/>
     <VBox styleClass="action-bar" spacing="10">
-        <Label text="Start a donation campaign. Only you can edit or delete your own campaigns." styleClass="action-bar-hint" wrapText="true"/>
+        <Label text="Start a donation campaign." styleClass="action-bar-hint" wrapText="true"/>
         <HBox spacing="12"><Button text="+ Add Campaign" onAction="#onAdd" styleClass="primary-button"/>
             <Button text="Refresh" onAction="#onRefresh" styleClass="secondary-button"/></HBox>
     </VBox>

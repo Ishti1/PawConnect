@@ -43,6 +43,16 @@ public class ApiClient {
         return post("/auth/login", body, AuthResponse.class, false);
     }
 
+    public AuthResponse loginWithGoogle(String idToken) throws IOException, InterruptedException {
+        String body = mapper.writeValueAsString(Map.of("idToken", idToken));
+        return post("/auth/google", body, AuthResponse.class, false);
+    }
+
+    public void updateDisplayName(String newDisplayName) throws IOException, InterruptedException {
+        String body = mapper.writeValueAsString(Map.of("displayName", newDisplayName));
+        patch("/auth/display-name", body);
+    }
+
     public AuthResponse register(String email, String password, String displayName) throws IOException, InterruptedException {
         String body = mapper.writeValueAsString(Map.of(
                 "email", email,
@@ -215,6 +225,27 @@ public class ApiClient {
             return mapper.readValue(response.body(), type);
         } catch (Exception e) {
             throw new IOException("Invalid server response. Is the backend running on port 8080?", e);
+        }
+    }
+
+    private void patch(String path, String body) throws IOException, InterruptedException {
+        if (Session.getToken() == null) {
+            throw new IOException("You must be logged in.");
+        }
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(Session.getApiBaseUrl() + path))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + Session.getToken())
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(body));
+        HttpResponse<String> response;
+        try {
+            response = http.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            throw new IOException(toUserMessage(e), e);
+        }
+        if (response.statusCode() >= 400) {
+            throw new IOException(parseError(response.body()));
         }
     }
 

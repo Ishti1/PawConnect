@@ -3,11 +3,13 @@ package com.catconnect.dto;
 import com.catconnect.entity.User;
 import lombok.Builder;
 import lombok.Data;
-import lombok.AllArgsConstructor; // Add this import
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor // Add this annotation!
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDto {
 
     private Long id;
@@ -16,6 +18,8 @@ public class UserDto {
     private String avatarUrl;
     private String city;
     private Boolean isAdmin;
+    private String authProvider;
+    private Boolean isNewUser;
 
     public static UserDto from(User user) {
         return UserDto.builder()
@@ -25,6 +29,7 @@ public class UserDto {
                 .avatarUrl(user.getAvatarUrl())
                 .city(user.getCity())
                 .isAdmin(user.getIsAdmin())
+                .authProvider(user.getAuthProvider())
                 .build();
     }
 }

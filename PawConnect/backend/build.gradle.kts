@@ -40,6 +40,8 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     implementation("com.cloudinary:cloudinary-http44:1.38.0")
+    implementation("com.google.api-client:google-api-client:2.2.0")
+    implementation("com.google.http-client:google-http-client-gson:1.43.3")
 }
 
 tasks.withType<Test> {

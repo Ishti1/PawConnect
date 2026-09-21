@@ -39,6 +39,10 @@ public class User {
     @Column(name = "is_admin")
     private Boolean isAdmin;
 
+    @Column(name = "auth_provider", nullable = false)
+    @Builder.Default
+    private String authProvider = "LOCAL";
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

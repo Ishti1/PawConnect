@@ -122,6 +122,12 @@
                     prefWidth="360"
                     styleClass="login-outline-button"/>
 
+            <Button fx:id="btnGoogleLogin"
+                    text="Sign in with Google"
+                    onAction="#onGoogleLogin"
+                    prefWidth="360"
+                    styleClass="login-outline-button"/>
+
             <Button fx:id="btnBackToLogin"
                     text="← Go Back"
                     onAction="#onBackToLogin"
