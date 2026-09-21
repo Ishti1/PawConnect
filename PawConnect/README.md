@@ -1,6 +1,6 @@
 # PawConnect
 
-**Video Demo**: https://youtu.be/n4EIP4eHk1E
+**Presentation Video**: https://youtu.be/n4EIP4eHk1E
 
 A community platform for pet lovers — connect with vets, shelters, shops, and fellow pet parents.
 
